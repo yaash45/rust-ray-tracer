@@ -1,23 +1,35 @@
 mod canvas;
 mod color;
 mod spatial_identifier;
+mod tick;
 mod tuples;
 
-use canvas::Canvas;
-use color::Color;
-use std::fs;
+use tick::{Environment, Projectile};
+use tuples::SpatialTuple;
 
 fn main() {
-    let w = 10;
-    let h = 2;
-    let mut canvas = Canvas::new(w, h);
+    println!("It's tick tick time");
 
-    canvas.fill_canvas(Color::new(1, 0.8, 0.6));
-    canvas.write_pixel(0, 0, Color::default());
+    let p = SpatialTuple::new_point(0, 1, 1);
+    let v = SpatialTuple::new_vector(1, 1, 1).normalize();
+    let mut projectile = Projectile::new(&p, &v);
 
-    let ppm = canvas.to_ppm();
+    let g = SpatialTuple::new_vector(0, -0.1, -0.2);
+    let w = SpatialTuple::new_vector(-0.01, 0, -0.1);
+    let environment = Environment::new(&g, &w);
 
-    println!("{}", ppm);
+    let mut i = 0;
 
-    fs::write("./test1.ppm", ppm).expect("Unable to write");
+    while projectile.position.get_y() >= 0.0 {
+        i += 1;
+        println!(
+            "position after iteration {} = ({},{},{})",
+            i,
+            projectile.position.get_x(),
+            projectile.position.get_y(),
+            projectile.position.get_z()
+        );
+
+        projectile = tick::tick(&environment, &projectile);
+    }
 }
