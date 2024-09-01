@@ -1,3 +1,4 @@
+mod color;
 mod spatial_identifier;
 mod tuples;
 
