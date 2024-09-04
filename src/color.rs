@@ -31,6 +31,29 @@ impl Color {
     pub fn hadamard_product(&self, other: &Color) -> Self {
         self * other
     }
+
+    pub fn get_255_scaled_tuple(&self) -> (usize, usize, usize) {
+        let r = ((self.red * 255.0) as usize).clamp(0, 255);
+        let g = ((self.green * 255.0) as usize).clamp(0, 255);
+        let b = ((self.blue * 255.0) as usize).clamp(0, 255);
+        (r, g, b)
+    }
+}
+
+impl Default for Color {
+    fn default() -> Self {
+        Self {
+            red: 0.0,
+            green: 0.0,
+            blue: 0.0,
+        }
+    }
+}
+
+impl From<&Color> for String {
+    fn from(value: &Color) -> Self {
+        format!("{} {} {}", value.red, value.blue, value.green)
+    }
 }
 
 impl<T, U, G> From<(T, U, G)> for Color
