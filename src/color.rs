@@ -16,15 +16,31 @@ impl Color {
         }
     }
 
-    pub fn get_red(&self) -> f64 {
+    pub fn black() -> Self {
+        Self::default()
+    }
+
+    pub fn red() -> Self {
+        Self::new(1, 0, 0)
+    }
+
+    pub fn green() -> Self {
+        Self::new(0, 1, 0)
+    }
+
+    pub fn blue() -> Self {
+        Self::new(0, 0, 1)
+    }
+
+    pub fn get_r(&self) -> f64 {
         self.red
     }
 
-    pub fn get_green(&self) -> f64 {
+    pub fn get_g(&self) -> f64 {
         self.green
     }
 
-    pub fn get_blue(&self) -> f64 {
+    pub fn get_b(&self) -> f64 {
         self.blue
     }
 
@@ -133,14 +149,14 @@ mod tests {
     #[test]
     fn color_getters() {
         let color = Color::new(-0.5, 0.4, 1.7);
-        assert_eq!(color.get_red(), -0.5);
-        assert_eq!(color.get_green(), 0.4);
-        assert_eq!(color.get_blue(), 1.7);
+        assert_eq!(color.get_r(), -0.5);
+        assert_eq!(color.get_g(), 0.4);
+        assert_eq!(color.get_b(), 1.7);
 
         let color = Color::from((0.2, 0, 1));
-        assert_eq!(color.get_red(), 0.2);
-        assert_eq!(color.get_green(), 0.0);
-        assert_eq!(color.get_blue(), 1.0);
+        assert_eq!(color.get_r(), 0.2);
+        assert_eq!(color.get_g(), 0.0);
+        assert_eq!(color.get_b(), 1.0);
     }
 
     #[test]

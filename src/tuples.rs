@@ -1,7 +1,7 @@
 use crate::spatial_identifier::SpatialIdentifier;
 use std::ops;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 /// Data representing a spatial property like a Vector, or Point
 pub struct SpatialTuple {
     x: f64,
@@ -102,6 +102,19 @@ impl ops::Add<&SpatialTuple> for &SpatialTuple {
     type Output = SpatialTuple;
 
     fn add(self, rhs: &SpatialTuple) -> Self::Output {
+        SpatialTuple {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
+            w: &self.w + &rhs.w,
+        }
+    }
+}
+
+impl ops::Add<SpatialTuple> for SpatialTuple {
+    type Output = SpatialTuple;
+
+    fn add(self, rhs: SpatialTuple) -> Self::Output {
         SpatialTuple {
             x: self.x + rhs.x,
             y: self.y + rhs.y,

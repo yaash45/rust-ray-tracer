@@ -1,6 +1,6 @@
 use std::ops;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SpatialIdentifier {
     Vector = 0,
     Point = 1,

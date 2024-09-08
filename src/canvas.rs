@@ -8,32 +8,25 @@ pub struct Canvas {
 }
 
 impl Canvas {
-    fn calculate_size(width: usize, height: usize) -> usize {
-        width * height
-    }
-
-    fn map_index(width: usize, i: usize, j: usize) -> usize {
-        (width * i) + j
-    }
-
     pub fn new(width: usize, height: usize) -> Self {
         Self {
             width,
             height,
-            inner: vec![Color::default(); Self::calculate_size(width, height)],
+            inner: vec![Color::default(); width * height],
         }
     }
 
-    pub fn pixel_at(&self, i: usize, j: usize) -> &Color {
-        &self.inner[Self::map_index(self.width, i, j)]
+    pub fn pixel_at(&self, x: usize, y: usize) -> &Color {
+        &self.inner[self.map_index(x, y)]
     }
 
-    pub fn write_pixel(&mut self, i: usize, j: usize, color: Color) {
-        self.inner[Self::map_index(self.width, i, j)] = color
+    pub fn write_pixel(&mut self, x: usize, y: usize, color: Color) {
+        let map_index = self.map_index(x, y);
+        self.inner[map_index] = color
     }
 
     pub fn fill_canvas(&mut self, color: Color) {
-        self.inner = vec![color; Self::calculate_size(self.width, self.height)];
+        self.inner = vec![color; self.width * self.height];
     }
 
     fn get_ppm_header(&self) -> String {
@@ -43,9 +36,9 @@ impl Canvas {
     fn build_ppm_body(&self) -> String {
         let mut pixels = String::new();
 
-        for i in 0..self.height {
-            for j in 0..self.width {
-                let scaled_color_tuple = self.pixel_at(i, j).get_255_scaled_tuple();
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let scaled_color_tuple = self.pixel_at(x, y).get_255_scaled_tuple();
                 let scaled_color_string = format!(
                     "{} {} {}",
                     scaled_color_tuple.0, scaled_color_tuple.1, scaled_color_tuple.2
@@ -64,6 +57,10 @@ impl Canvas {
         let header = self.get_ppm_header();
         let pixels = self.build_ppm_body();
         header + &pixels
+    }
+
+    fn map_index(&self, x: usize, y: usize) -> usize {
+        y * self.width + x
     }
 }
 
@@ -99,11 +96,13 @@ mod tests {
 
     #[test]
     fn to_ppm_header() {
-        let w = 3;
-        let h = 2;
+        let w = 5;
+        let h = 3;
         let mut canvas = Canvas::new(w, h);
 
         canvas.fill_canvas(Color::new(1, 0.8, 0.6));
-        canvas.to_ppm();
+        let ppm = canvas.to_ppm();
+
+        println!("{}", ppm);
     }
 }
