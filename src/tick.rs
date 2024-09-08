@@ -7,32 +7,24 @@ pub struct Environment {
 #[derive(Debug)]
 pub struct Projectile {
     pub position: SpatialTuple,
-    velocity: SpatialTuple,
+    pub velocity: SpatialTuple,
 }
 
 impl Environment {
-    pub fn new(gravity: &SpatialTuple, wind: &SpatialTuple) -> Self {
-        Self {
-            gravity: gravity.clone(),
-            wind: wind.clone(),
-        }
+    pub fn new(gravity: SpatialTuple, wind: SpatialTuple) -> Self {
+        Self { gravity, wind }
     }
 }
 
 impl Projectile {
-    pub fn new(position: &SpatialTuple, velocity: &SpatialTuple) -> Self {
-        Self {
-            position: position.clone(),
-            velocity: velocity.clone(),
-        }
+    pub fn new(position: SpatialTuple, velocity: SpatialTuple) -> Self {
+        Self { position, velocity }
     }
 }
 
-pub fn tick(env: &Environment, proj: &Projectile) -> Projectile {
-    let env_velocity = &env.gravity + &env.wind;
-
-    Projectile {
-        position: &proj.position + &proj.velocity,
-        velocity: &proj.velocity + &env_velocity,
-    }
+pub fn tick(env: &Environment, proj: Projectile) -> Projectile {
+    Projectile::new(
+        proj.position + proj.velocity,
+        proj.velocity + env.gravity + env.wind,
+    )
 }
