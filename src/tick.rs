@@ -1,23 +1,23 @@
-use crate::tuples::SpatialTuple;
+use crate::spatial::Tuple;
 pub struct Environment {
-    gravity: SpatialTuple,
-    wind: SpatialTuple,
+    gravity: Tuple,
+    wind: Tuple,
 }
 
 #[derive(Debug)]
 pub struct Projectile {
-    pub position: SpatialTuple,
-    pub velocity: SpatialTuple,
+    pub position: Tuple,
+    pub velocity: Tuple,
 }
 
 impl Environment {
-    pub fn new(gravity: SpatialTuple, wind: SpatialTuple) -> Self {
+    pub fn new(gravity: Tuple, wind: Tuple) -> Self {
         Self { gravity, wind }
     }
 }
 
 impl Projectile {
-    pub fn new(position: SpatialTuple, velocity: SpatialTuple) -> Self {
+    pub fn new(position: Tuple, velocity: Tuple) -> Self {
         Self { position, velocity }
     }
 }
