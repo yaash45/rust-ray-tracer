@@ -1,4 +1,7 @@
 pub mod canvas;
+
+/// This module contains our representation of RGB Color values
+/// and implementations of various color operations
 pub mod color;
 
 /// Contains the representation for matrices
