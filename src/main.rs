@@ -1,9 +1,10 @@
+use anyhow::Result;
 use raytracer::canvas::Canvas;
 use raytracer::color::Color;
 use raytracer::spatial::Tuple;
 use raytracer::tick::{tick, Environment, Projectile};
 
-fn main() {
+fn main() -> Result<()> {
     println!("It's tick tick time");
 
     let p = Tuple::new_point(0, 1, 0);
@@ -26,9 +27,15 @@ fn main() {
             continue;
         }
 
-        canvas.write_pixel(x as usize, height - y as usize, Color::red());
+        canvas.write_pixel(x as usize, height - y as usize, Color::red())?;
         projectile = tick(&environment, projectile);
     }
 
-    std::fs::write("./projectile.ppm", canvas.to_ppm()).expect("Cannot write");
+    std::fs::write(
+        "./projectile.ppm",
+        canvas.to_ppm().expect("could not convert to ppm"),
+    )
+    .expect("Cannot write");
+
+    Ok(())
 }
