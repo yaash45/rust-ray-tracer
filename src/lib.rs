@@ -1,3 +1,6 @@
+/// Contains the main canvas that we represent our coloured pixels on.
+/// It also contains the functionality to export the canvas into a
+/// familiar image format (PPM)
 pub mod canvas;
 
 /// This module contains our representation of RGB Color values
