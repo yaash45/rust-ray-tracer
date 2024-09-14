@@ -18,7 +18,7 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
 
     pub fn multiply<const M2: usize, const N2: usize>(
         &self,
-        other: &Matrix<M2, N2>,
+        left_matrix: &Matrix<M2, N2>,
     ) -> Result<Matrix<M2, N>> {
         if M != N2 {
             Err(Error::msg("Invalid indices for multiplication"))
@@ -28,7 +28,7 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
             for i in 0..M2 {
                 for j in 0..N {
                     for k in 0..M {
-                        matrix[i][j] += other[i][k] * self[k][j];
+                        matrix[i][j] += left_matrix[i][k] * self[k][j];
                     }
                 }
             }
@@ -267,9 +267,11 @@ mod tests {
 
         let tuple_matrix = Matrix::from(Tuple::from((1.0, 2.0, 3.0, 1.0)));
 
+        let expected = Tuple::new_point(18, 24, 33);
+
         let actual: Tuple = tuple_matrix.multiply(&matrix)?.into();
 
-        println!("{:?}", actual);
+        assert_eq!(actual, expected);
 
         Ok(())
     }
