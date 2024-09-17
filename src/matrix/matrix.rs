@@ -17,24 +17,12 @@ pub struct Matrix<const M: usize, const N: usize> {
 }
 
 impl<const M: usize, const N: usize> Matrix<M, N> {
-    /// Build a new matrix with three inputs:
+    /// Build a new default matrix with all 0.0 values:
     ///
     /// `M` = Total # of rows in the matrix
-    ///
-    /// `N` = Total # of columns in the matrix
-    ///
-    /// ```
-    /// use raytracer::matrix::Matrix;
-    ///
-    /// let vals = [
-    ///     [1.0, 2.0],
-    ///     [-3.0, 4.0]
-    /// ];
-    ///
-    /// let matrix = Matrix::new(vals);
-    /// ```
-    pub fn new(matrix: [[f64; N]; M]) -> Self {
-        Self::from(matrix)
+    /// `N` = Total # of columns in the matrix    
+    fn new() -> Self {
+        Self::default()
     }
 
     /// Get identity matrix of size S
@@ -48,7 +36,7 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
     ///                   };
     ///
     /// // Multiplying with an identity matrix gives us back the original one
-    /// let matrix = Matrix::new([[2.0, 4.0], [4.0, 9.0]]);
+    /// let matrix = Matrix::from([[2.0, 4.0], [4.0, 9.0]]);
     /// match matrix.multiply(&identity_2x2) {
     ///     Ok(m) => assert_eq!(m, matrix.clone()),
     ///     Err(_e) => panic!("this should not happen, since it's a valid multiplication")
@@ -68,18 +56,18 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
             ));
         }
 
-        let mut vals = [[0.0; N]; M];
+        let mut matrix = Matrix::<M, N>::new();
 
         let mut i = 0;
         let mut j = 0;
 
         while i < M && j < N {
-            vals[i][j] = 1.0;
+            matrix[i][j] = 1.0;
             i += 1;
             j += 1;
         }
 
-        Ok(Matrix::new(vals))
+        Ok(matrix)
     }
 
     /// Performs the multiplication of two matrices.
@@ -99,12 +87,12 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
     /// ```
     /// use raytracer::matrix::Matrix;
     ///
-    /// let a = Matrix::new([
+    /// let a = Matrix::from([
     ///     [1.0, 0.0],
     ///     [2.0, 5.0],
     /// ]);
     ///
-    /// let b = Matrix::new([
+    /// let b = Matrix::from([
     ///     [4.0, 3.0],
     ///     [2.0, 9.0],
     /// ]);
@@ -112,7 +100,7 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
     /// let ab = b.multiply(&a);
     ///
     /// match ab {
-    ///     Ok(m) => assert_eq!(m, Matrix::new([[4.0, 3.0],[18.0, 51.0]])),
+    ///     Ok(m) => assert_eq!(m, Matrix::from([[4.0, 3.0],[18.0, 51.0]])),
     ///     Err(_) => panic!("this should not fail")
     /// };
     /// ```
@@ -123,7 +111,7 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
         if M != N2 {
             Err(Error::msg("Invalid indices for multiplication"))
         } else {
-            let mut matrix = Matrix::new([[0.0; N]; M2]);
+            let mut matrix = Matrix::new();
 
             for i in 0..M2 {
                 for j in 0..N {
@@ -136,6 +124,34 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
             Ok(matrix)
         }
     }
+
+    /// When you transpose a matrix, its rows turn into columns
+    /// and its columns into rows
+    ///
+    /// ```
+    /// use raytracer::matrix::Matrix;
+    ///
+    /// let m = Matrix::from([
+    ///     [2.0, 4.0],
+    ///     [7.0, 1.0],
+    /// ]);
+    ///
+    /// assert_eq!(m.transpose(), Matrix::from([
+    ///     [2.0, 7.0],
+    ///     [4.0, 1.0],
+    /// ]));
+    /// ```
+    pub fn transpose(&self) -> Matrix<N, M> {
+        let mut transposed = Matrix::<N, M>::new();
+
+        for i in 0..M {
+            for j in 0..N {
+                transposed[j][i] = self[i][j];
+            }
+        }
+
+        transposed
+    }
 }
 
 impl<const M: usize, const N: usize> From<[[f64; N]; M]> for Matrix<M, N> {
@@ -146,7 +162,7 @@ impl<const M: usize, const N: usize> From<[[f64; N]; M]> for Matrix<M, N> {
 
 impl From<Tuple> for Matrix<4, 1> {
     fn from(value: Tuple) -> Self {
-        Self::new([
+        Self::from([
             [value.get_x()],
             [value.get_y()],
             [value.get_z()],
@@ -218,6 +234,12 @@ impl<const M: usize, const N: usize> Display for Matrix<M, N> {
     }
 }
 
+impl<const M: usize, const N: usize> Default for Matrix<M, N> {
+    fn default() -> Self {
+        Self::from([[0.0; N]; M])
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Matrix;
@@ -227,7 +249,7 @@ mod tests {
     #[test]
     fn constructing_matrices_works() {
         // Case 1: Construct a 4x4 matrix and test getting values at indices
-        let matrix_4x4 = Matrix::new([
+        let matrix_4x4 = Matrix::from([
             [1.0, 2.0, 3.0, 4.0],
             [5.5, 6.5, 7.5, 8.5],
             [9.0, 10.0, 11.0, 12.0],
@@ -242,14 +264,14 @@ mod tests {
         assert_eq!(matrix_4x4[3][2], 15.5);
 
         // Case 2: Construct a 2x2 matrix and test getting values at indices
-        let matrix_2x2 = Matrix::new([[-3.0, 5.0], [1.0, -2.0]]);
+        let matrix_2x2 = Matrix::from([[-3.0, 5.0], [1.0, -2.0]]);
 
         assert_eq!(matrix_2x2[0][0], -3.0);
         assert_eq!(matrix_2x2[0][1], 5.0);
         assert_eq!(matrix_2x2[1][0], 1.0);
         assert_eq!(matrix_2x2[1][1], -2.0);
 
-        let matrix_3x3 = Matrix::new([[-3.0, 5.0, 0.0], [1.0, -2.0, -7.0], [0.0, 1.0, 1.0]]);
+        let matrix_3x3 = Matrix::from([[-3.0, 5.0, 0.0], [1.0, -2.0, -7.0], [0.0, 1.0, 1.0]]);
 
         assert_eq!(matrix_3x3[0][0], -3.0);
         assert_eq!(matrix_3x3[1][1], -2.0);
@@ -258,14 +280,14 @@ mod tests {
 
     #[test]
     fn that_matrix_equality_works() {
-        let m_a = Matrix::new([
+        let m_a = Matrix::from([
             [1.0, 2.0, 3.0, 4.0],
             [5.0, 6.0, 7.0, 8.0],
             [9.0, 8.0, 7.0, 6.0],
             [5.0, 4.0, 3.0, 2.0],
         ]);
 
-        let mut m_b = Matrix::new([
+        let mut m_b = Matrix::from([
             [1.0, 2.0, 3.0, 4.0],
             [5.0, 6.0, 7.0, 8.0],
             [9.0, 8.0, 7.0, 6.0],
@@ -281,21 +303,21 @@ mod tests {
 
     #[test]
     fn matrix_multiplication_4x4_times_4x4_works() -> Result<()> {
-        let m_a = Matrix::new([
+        let m_a = Matrix::from([
             [1.0, 2.0, 3.0, 4.0],
             [5.0, 6.0, 7.0, 8.0],
             [9.0, 8.0, 7.0, 6.0],
             [5.0, 4.0, 3.0, 2.0],
         ]);
 
-        let m_b = Matrix::new([
+        let m_b = Matrix::from([
             [-2.0, 1.0, 2.0, 3.0],
             [3.0, 2.0, 1.0, -1.0],
             [4.0, 3.0, 6.0, 5.0],
             [1.0, 2.0, 7.0, 8.0],
         ]);
 
-        let expected = Matrix::new([
+        let expected = Matrix::from([
             [20.0, 22.0, 50.0, 48.0],
             [44.0, 54.0, 114.0, 108.0],
             [40.0, 58.0, 110.0, 102.0],
@@ -311,14 +333,14 @@ mod tests {
 
     #[test]
     fn matrix_multiplication_with_invalid_dimensions_fails() -> Result<()> {
-        let matrix_4x4 = Matrix::new([
+        let matrix_4x4 = Matrix::from([
             [1.0, 2.0, 3.0, 4.0],
             [5.0, 6.0, 7.0, 8.0],
             [9.0, 8.0, 7.0, 6.0],
             [5.0, 4.0, 3.0, 2.0],
         ]);
 
-        let matrix_2x2 = Matrix::new([[-3.0, 5.0], [1.0, -2.0]]);
+        let matrix_2x2 = Matrix::from([[-3.0, 5.0], [1.0, -2.0]]);
 
         match matrix_2x2.multiply(&matrix_4x4) {
             Ok(_m) => panic!("We should have an invalid dimension error"),
@@ -330,21 +352,21 @@ mod tests {
 
     #[test]
     fn matrix_multiplication_4x4_times_4x3_works() -> Result<()> {
-        let matrix_4x4 = Matrix::new([
+        let matrix_4x4 = Matrix::from([
             [1.0, 2.0, 3.0, 4.0],
             [5.0, 6.0, 7.0, 8.0],
             [9.0, 8.0, 7.0, 6.0],
             [5.0, 4.0, 3.0, 2.0],
         ]);
 
-        let matrix_4x3 = Matrix::new([
+        let matrix_4x3 = Matrix::from([
             [-2.0, 1.0, 2.0],
             [3.0, 2.0, 1.0],
             [4.0, 3.0, 6.0],
             [1.0, 2.0, 7.0],
         ]);
 
-        let expected = Matrix::new([
+        let expected = Matrix::from([
             [20.0, 22.0, 50.0],
             [44.0, 54.0, 114.0],
             [40.0, 58.0, 110.0],
@@ -360,7 +382,7 @@ mod tests {
 
     #[test]
     fn matrix_and_tuple_multiplication_works() -> Result<()> {
-        let matrix = Matrix::new([
+        let matrix = Matrix::from([
             [1.0, 2.0, 3.0, 4.0],
             [2.0, 4.0, 4.0, 2.0],
             [8.0, 6.0, 4.0, 1.0],
@@ -381,18 +403,43 @@ mod tests {
     #[test]
     fn construct_and_use_identity_matrix() -> Result<()> {
         let identity_2x2 = Matrix::<2, 2>::identity()?;
-        assert_eq!(identity_2x2, Matrix::new([[1.0, 0.0], [0.0, 1.0]]));
+        assert_eq!(identity_2x2, Matrix::from([[1.0, 0.0], [0.0, 1.0]]));
 
         let identity_3x3 = Matrix::<3, 3>::identity()?;
         assert_eq!(
             identity_3x3,
-            Matrix::new([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+            Matrix::from([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
         );
 
         match Matrix::<2, 3>::identity() {
             Ok(_m) => panic!("2x3 is not a valid identity matrix size"),
             Err(_e) => (),
         };
+
+        Ok(())
+    }
+
+    #[test]
+    fn transpose_operation_works() -> Result<()> {
+        let m = Matrix::from([
+            [0.0, 9.0, 3.0, 0.0],
+            [9.0, 8.0, 0.0, 8.0],
+            [1.0, 8.0, 5.0, 3.0],
+            [0.0, 0.0, 5.0, 8.0],
+        ]);
+
+        let m_t = Matrix::from([
+            [0.0, 9.0, 1.0, 0.0],
+            [9.0, 8.0, 8.0, 0.0],
+            [3.0, 0.0, 5.0, 5.0],
+            [0.0, 8.0, 3.0, 8.0],
+        ]);
+
+        assert_eq!(m.transpose(), m_t);
+
+        // The identity matrix transposed is the same as the original matrix
+        let identity_4x4 = Matrix::<4, 4>::identity()?;
+        assert_eq!(identity_4x4.transpose(), identity_4x4.clone());
 
         Ok(())
     }
