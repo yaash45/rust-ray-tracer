@@ -420,6 +420,19 @@ mod tests {
     }
 
     #[test]
+    fn identity_matrix_multiplication_works_with_tuples() -> Result<()> {
+        let tuple = Tuple::new_point(1.0, 2.0, 3.0);
+        let tuple_matrix = Matrix::from(Tuple::new_point(1.0, 2.0, 3.0));
+        let identity_4x4 = Matrix::<4, 4>::identity()?;
+
+        assert_eq!(
+            Tuple::from(tuple_matrix.multiply(&identity_4x4)?),
+            tuple.clone()
+        );
+        Ok(())
+    }
+
+    #[test]
     fn transpose_operation_works() -> Result<()> {
         let m = Matrix::from([
             [0.0, 9.0, 3.0, 0.0],
