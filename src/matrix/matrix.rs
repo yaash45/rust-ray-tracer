@@ -7,15 +7,115 @@ use std::{
 use crate::{spatial::Tuple, utils::float_equals};
 
 #[derive(Debug, Clone, Copy)]
+/// Representation of a Matrix of dimension `M x N`
+/// containing [f64] values
+///
+/// `M` = Total # of rows
+/// `N` = Total # of columns
 pub struct Matrix<const M: usize, const N: usize> {
     matrix: [[f64; N]; M],
 }
 
 impl<const M: usize, const N: usize> Matrix<M, N> {
+    /// Build a new matrix with three inputs:
+    ///
+    /// `M` = Total # of rows in the matrix
+    ///
+    /// `N` = Total # of columns in the matrix
+    ///
+    /// ```
+    /// use raytracer::matrix::Matrix;
+    ///
+    /// let vals = [
+    ///     [1.0, 2.0],
+    ///     [-3.0, 4.0]
+    /// ];
+    ///
+    /// let matrix = Matrix::new(vals);
+    /// ```
     pub fn new(matrix: [[f64; N]; M]) -> Self {
         Self::from(matrix)
     }
 
+    /// Get identity matrix of size S
+    ///
+    /// ```
+    /// use raytracer::matrix::Matrix;
+    ///
+    /// let identity_2x2 = match Matrix::<2,2>::identity() {
+    ///                         Ok(m) => m,
+    ///                         Err(_e) => panic!("this should be a valid identity matrix construction")
+    ///                   };
+    ///
+    /// // Multiplying with an identity matrix gives us back the original one
+    /// let matrix = Matrix::new([[2.0, 4.0], [4.0, 9.0]]);
+    /// match matrix.multiply(&identity_2x2) {
+    ///     Ok(m) => assert_eq!(m, matrix.clone()),
+    ///     Err(_e) => panic!("this should not happen, since it's a valid multiplication")
+    /// };
+    ///
+    /// let identity_2x3_invalid = Matrix::<2,3>::identity();
+    ///
+    /// match identity_2x3_invalid {
+    ///     Ok(_m) => panic!("this should be an invalid construction"),
+    ///     Err(_e) => (),
+    /// };
+    /// ```
+    pub fn identity() -> Result<Self> {
+        if M != N {
+            return Err(Error::msg(
+                "# of rows should equal # of columns for an identity matrix",
+            ));
+        }
+
+        let mut vals = [[0.0; N]; M];
+
+        let mut i = 0;
+        let mut j = 0;
+
+        while i < M && j < N {
+            vals[i][j] = 1.0;
+            i += 1;
+            j += 1;
+        }
+
+        Ok(Matrix::new(vals))
+    }
+
+    /// Performs the multiplication of two matrices.
+    ///
+    /// `result = left_matrix x this matrix`
+    ///
+    /// The requirement is that the number of columns of
+    /// the `left_matrix` should be equal to the number
+    /// of rows of this matrix.
+    ///
+    /// _Remember_, that the order matters when multiplying
+    /// matrices, and this operation assumes you pass in
+    /// the matrix that goes on the *left* side of the operation.
+    /// i.e., assume this matrix is B, and the input is A,
+    /// this performs the multiplication `A x B`.
+    ///
+    /// ```
+    /// use raytracer::matrix::Matrix;
+    ///
+    /// let a = Matrix::new([
+    ///     [1.0, 0.0],
+    ///     [2.0, 5.0],
+    /// ]);
+    ///
+    /// let b = Matrix::new([
+    ///     [4.0, 3.0],
+    ///     [2.0, 9.0],
+    /// ]);
+    ///
+    /// let ab = b.multiply(&a);
+    ///
+    /// match ab {
+    ///     Ok(m) => assert_eq!(m, Matrix::new([[4.0, 3.0],[18.0, 51.0]])),
+    ///     Err(_) => panic!("this should not fail")
+    /// };
+    /// ```
     pub fn multiply<const M2: usize, const N2: usize>(
         &self,
         left_matrix: &Matrix<M2, N2>,
@@ -126,6 +226,7 @@ mod tests {
 
     #[test]
     fn constructing_matrices_works() {
+        // Case 1: Construct a 4x4 matrix and test getting values at indices
         let matrix_4x4 = Matrix::new([
             [1.0, 2.0, 3.0, 4.0],
             [5.5, 6.5, 7.5, 8.5],
@@ -140,6 +241,7 @@ mod tests {
         assert_eq!(matrix_4x4[3][0], 13.5);
         assert_eq!(matrix_4x4[3][2], 15.5);
 
+        // Case 2: Construct a 2x2 matrix and test getting values at indices
         let matrix_2x2 = Matrix::new([[-3.0, 5.0], [1.0, -2.0]]);
 
         assert_eq!(matrix_2x2[0][0], -3.0);
@@ -272,6 +374,25 @@ mod tests {
         let actual: Tuple = tuple_matrix.multiply(&matrix)?.into();
 
         assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn construct_and_use_identity_matrix() -> Result<()> {
+        let identity_2x2 = Matrix::<2, 2>::identity()?;
+        assert_eq!(identity_2x2, Matrix::new([[1.0, 0.0], [0.0, 1.0]]));
+
+        let identity_3x3 = Matrix::<3, 3>::identity()?;
+        assert_eq!(
+            identity_3x3,
+            Matrix::new([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+        );
+
+        match Matrix::<2, 3>::identity() {
+            Ok(_m) => panic!("2x3 is not a valid identity matrix size"),
+            Err(_e) => (),
+        };
 
         Ok(())
     }
