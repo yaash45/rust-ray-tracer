@@ -155,6 +155,29 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
 
     /// Extracts the submatrix by eliminating the specified
     /// row and column from the current matrix.
+    ///
+    /// Note that due to the constraints of Rust's const generics
+    /// we have to be explicit about the size of the resulting
+    /// submatrix. The method performs additional checks to verify
+    /// if the user has entered a valid dimension for the resultant
+    /// submatrix.
+    ///
+    /// ```
+    /// use raytracer::matrix::Matrix;
+    ///
+    /// let matrix = Matrix::from([
+    ///     [1.0, 2.0, 3.0],
+    ///     [3.0, 2.0, 1.0],
+    ///     [4.0, 5.0, 6.0],
+    /// ]);
+    ///
+    /// let sub_matrix = matrix.submatrix::<2,2>(1, 2);
+    ///
+    /// match sub_matrix {
+    ///     Ok(s) => assert_eq!(s, Matrix::from([[1.0, 2.0], [4.0, 5.0]])),
+    ///     Err(_e) => panic!("this should not happen")
+    /// };
+    /// ```
     pub fn submatrix<const P: usize, const Q: usize>(
         &self,
         row: usize,
@@ -282,11 +305,12 @@ impl<const M: usize, const N: usize> Default for Matrix<M, N> {
     }
 }
 
-#[allow(dead_code)]
 /// Some matrix operations don't need a reference to `self`. This module is
 /// meant to contain those static functions that do not require instantiation
-/// of [Matrix] instances
-mod static_operations {
+/// of [Matrix] instances. Furthermore, when dealing with square matrices of
+/// special sizes (2x2, 3x3, and 4x4), Rust's generics require that we provide
+/// implementations for all of these specific sizes.
+pub mod static_operations {
     use super::Matrix;
     use anyhow::{Error, Result};
 
@@ -295,11 +319,13 @@ mod static_operations {
         (matrix[0][0] * matrix[1][1]) - (matrix[0][1] * matrix[1][0])
     }
 
+    /// Calculates the minor of a 3x3 matrix
     pub(super) fn minor_3x3(matrix: &Matrix<3, 3>, row: usize, col: usize) -> Result<f64> {
         let sub_matrix = matrix.submatrix::<2, 2>(row, col)?;
         Ok(determinant_2x2(&sub_matrix))
     }
 
+    /// Calculates the cofactor of a 3x3 matrix
     pub(super) fn cofactor_3x3(matrix: &Matrix<3, 3>, row: usize, col: usize) -> Result<f64> {
         let minor = minor_3x3(matrix, row, col)?;
 
@@ -310,6 +336,7 @@ mod static_operations {
         }
     }
 
+    /// Calculates the determinant of a 3x3 matrix
     pub(super) fn determinant_3x3(matrix: &Matrix<3, 3>) -> Result<f64> {
         let mut det = 0_f64;
 
@@ -320,11 +347,13 @@ mod static_operations {
         Ok(det)
     }
 
+    /// Calculates the minor of a 4x4 matrix
     pub(super) fn minor_4x4(matrix: &Matrix<4, 4>, row: usize, col: usize) -> Result<f64> {
         let sub_matrix = matrix.submatrix::<3, 3>(row, col)?;
         determinant_3x3(&sub_matrix)
     }
 
+    /// Calculates the cofactor of a 4x4 matrix
     pub(super) fn cofactor_4x4(matrix: &Matrix<4, 4>, row: usize, col: usize) -> Result<f64> {
         let minor = minor_4x4(matrix, row, col)?;
 
@@ -335,6 +364,7 @@ mod static_operations {
         }
     }
 
+    /// Calculates the determinant of a 4x4 matrix
     pub(super) fn determinant_4x4(matrix: &Matrix<4, 4>) -> Result<f64> {
         let mut det = 0_f64;
 
@@ -345,19 +375,19 @@ mod static_operations {
         Ok(det)
     }
 
-    pub(super) fn is_invertible_2x2(matrix: &Matrix<2, 2>) -> bool {
-        determinant_2x2(matrix) != 0.0
-    }
-
-    pub(super) fn is_invertible_3x3(matrix: &Matrix<3, 3>) -> Result<bool> {
-        Ok(determinant_3x3(matrix)? != 0.0)
-    }
-
+    /// Checks if a 4x4 matrix is invertible
     pub(super) fn is_invertible_4x4(matrix: &Matrix<4, 4>) -> Result<bool> {
         Ok(determinant_4x4(matrix)? != 0.0)
     }
 
-    pub(super) fn inverse_4x4(matrix: &Matrix<4, 4>) -> Result<Matrix<4, 4>> {
+    /// Calculates the inverse of a 4x4 matrix.
+    ///
+    /// This function returns a `Result<Matrix<4,4>, Err>` because not all 4x4
+    /// matrices are invertible. Before attempting to calculate the inverse, we
+    /// first check if the matrix is invertible (the determinant of the matrix
+    /// is non-zero for invertible matrices). If a matrix is not invertible, we
+    /// will return an error to the caller.
+    pub fn inverse_4x4(matrix: &Matrix<4, 4>) -> Result<Matrix<4, 4>> {
         if !is_invertible_4x4(matrix)? {
             return Err(Error::msg("Matrix is not invertible"));
         }
@@ -378,7 +408,7 @@ mod static_operations {
 mod tests {
     use super::static_operations::{
         cofactor_3x3, determinant_2x2, determinant_3x3, determinant_4x4, inverse_4x4,
-        is_invertible_2x2, is_invertible_3x3, is_invertible_4x4, minor_3x3,
+        is_invertible_4x4, minor_3x3,
     };
     use super::Matrix;
     use crate::spatial::Tuple;
@@ -674,16 +704,6 @@ mod tests {
 
     #[test]
     fn is_invertible_checks() -> Result<()> {
-        let m_2 = Matrix::from([[1.0, 5.0], [-3.0, 2.0]]);
-        let m_2_non_invertible = Matrix::from([[1.0, 1.0], [1.0, 1.0]]);
-        assert!(is_invertible_2x2(&m_2));
-        assert!(!is_invertible_2x2(&m_2_non_invertible));
-
-        let m_3 = Matrix::from([[1.0, 2.0, 6.0], [-5.0, 8.0, -4.0], [2.0, 6.0, 4.0]]);
-        let m_3_non_invertible = Matrix::from([[1.0, 2.0, 3.0], [2.0, 4.0, 6.0], [1.0, 2.0, 3.0]]);
-        assert!(is_invertible_3x3(&m_3)?);
-        assert!(!is_invertible_3x3(&m_3_non_invertible)?);
-
         let m_4 = Matrix::from([
             [-2.0, -8.0, 3.0, 5.0],
             [-3.0, 1.0, 7.0, 3.0],
