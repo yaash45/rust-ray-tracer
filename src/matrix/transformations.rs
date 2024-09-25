@@ -238,4 +238,28 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn chaining_transforms() -> Result<()> {
+        let p = Tuple::new_point(1, 0, 1);
+        let a = rotation_x(PI / 2.0);
+        let b = scaling(5, 5, 5);
+        let c = translation(10, 5, 7);
+
+        // Case 1: without chaining
+        let result_rotate = &a * &p;
+        assert_eq!(result_rotate, Tuple::new_point(1, -1, 0));
+
+        let result_scale = &b * &result_rotate;
+        assert_eq!(result_scale, Tuple::new_point(5, -5, 0));
+
+        let result_translate = &c * &result_scale;
+        assert_eq!(result_translate, Tuple::new_point(15, 0, 7));
+
+        // Case 2: with chaining
+        let chained_transform = a.multiply(&b)?.multiply(&c)?;
+        assert_eq!(&chained_transform * &p, result_translate);
+
+        Ok(())
+    }
 }
