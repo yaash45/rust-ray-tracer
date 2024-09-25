@@ -73,11 +73,29 @@ pub fn rotation_z(rad: f64) -> Matrix<4, 4> {
     ])
 }
 
+/// Gets a 4x4 matrix that can apply a shear transformation on
+/// [crate::spatial::Tuple]
+pub fn shearing(
+    x_y: impl Into<f64>,
+    x_z: impl Into<f64>,
+    y_x: impl Into<f64>,
+    y_z: impl Into<f64>,
+    z_x: impl Into<f64>,
+    z_y: impl Into<f64>,
+) -> Matrix<4, 4> {
+    Matrix::from([
+        [1.0, x_y.into(), x_z.into(), 0.0],
+        [y_x.into(), 1.0, y_z.into(), 0.0],
+        [z_x.into(), z_y.into(), 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ])
+}
+
 #[cfg(test)]
 mod tests {
     use std::f64::consts::PI;
 
-    use super::{rotation_x, rotation_y, rotation_z, scaling, translation};
+    use super::{rotation_x, rotation_y, rotation_z, scaling, shearing, translation};
     use crate::matrix::inverse_4x4;
     use crate::spatial::Tuple;
     use anyhow::Result;
@@ -181,6 +199,43 @@ mod tests {
 
         let inv = inverse_4x4(&half_quarter)?;
         assert_eq!(&inv * &expected_half_quarter_point, p);
+        Ok(())
+    }
+
+    #[test]
+    fn shearing_tests() -> Result<()> {
+        let p = Tuple::new_point(2, 3, 4);
+
+        // case 1
+        let t1 = shearing(1, 0, 0, 0, 0, 0);
+        let expected_shear_t1 = Tuple::new_point(5, 3, 4);
+        assert_eq!(&t1 * &p, expected_shear_t1);
+
+        // case 2
+        let t2 = shearing(0, 1, 0, 0, 0, 0);
+        let expected_shear_t2 = Tuple::new_point(6, 3, 4);
+        assert_eq!(&t2 * &p, expected_shear_t2);
+
+        // case 3
+        let t3 = shearing(0, 0, 1, 0, 0, 0);
+        let expected_shear_t3 = Tuple::new_point(2, 5, 4);
+        assert_eq!(&t3 * &p, expected_shear_t3);
+
+        // case 4
+        let t4 = shearing(0, 0, 0, 1, 0, 0);
+        let expected_shear_t4 = Tuple::new_point(2, 7, 4);
+        assert_eq!(&t4 * &p, expected_shear_t4);
+
+        // case 5
+        let t5 = shearing(0, 0, 0, 0, 1, 0);
+        let expected_shear_t5 = Tuple::new_point(2, 3, 6);
+        assert_eq!(&t5 * &p, expected_shear_t5);
+
+        // case 6
+        let t6 = shearing(0, 0, 0, 0, 0, 1);
+        let expected_shear_t6 = Tuple::new_point(2, 3, 7);
+        assert_eq!(&t6 * &p, expected_shear_t6);
+
         Ok(())
     }
 }
