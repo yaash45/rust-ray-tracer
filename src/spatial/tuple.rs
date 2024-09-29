@@ -1,7 +1,8 @@
 use super::identifier::Identifier;
+use crate::utils::float_equals;
 use std::ops;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 /// Representation of a spatial property like a Vector, or Point
 pub struct Tuple {
     x: f64,
@@ -235,6 +236,15 @@ where
             z: value.2.into(),
             w: Identifier::from(value.3),
         }
+    }
+}
+
+impl PartialEq for Tuple {
+    fn eq(&self, other: &Self) -> bool {
+        float_equals(&self.x, &other.x)
+            && float_equals(&self.y, &other.y)
+            && float_equals(&self.z, &other.z)
+            && self.w == other.w
     }
 }
 

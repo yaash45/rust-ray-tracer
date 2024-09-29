@@ -236,6 +236,41 @@ impl From<Tuple> for Matrix<4, 1> {
     }
 }
 
+impl From<&Tuple> for Matrix<4, 1> {
+    fn from(value: &Tuple) -> Self {
+        Self::from([
+            [value.get_x()],
+            [value.get_y()],
+            [value.get_z()],
+            [value.get_w()],
+        ])
+    }
+}
+
+impl ops::Mul<&Tuple> for &Matrix<4, 4> {
+    type Output = Tuple;
+
+    fn mul(self, rhs: &Tuple) -> Self::Output {
+        let tuple_as_matrix = Matrix::from(rhs);
+        let multiplication_result = tuple_as_matrix.multiply(self);
+
+        match multiplication_result {
+            Ok(m) => Tuple::from(m),
+            Err(_e) => Tuple::new_vector(0, 0, 0),
+        }
+    }
+}
+
+impl<const M: usize, const N: usize, const P: usize, const Q: usize> ops::Mul<&Matrix<P, Q>>
+    for &Matrix<M, N>
+{
+    type Output = Result<Matrix<M, Q>>;
+
+    fn mul(self, rhs: &Matrix<P, Q>) -> Self::Output {
+        rhs.multiply(self)
+    }
+}
+
 impl From<Matrix<4, 1>> for Tuple {
     fn from(value: Matrix<4, 1>) -> Self {
         Self::from((value[0][0], value[1][0], value[2][0], value[3][0]))
@@ -492,7 +527,7 @@ mod tests {
             [16.0, 26.0, 46.0, 42.0],
         ]);
 
-        let actual = m_b.multiply(&m_a)?;
+        let actual = (&m_a * &m_b)?;
 
         assert_eq!(actual, expected);
 
@@ -510,7 +545,7 @@ mod tests {
 
         let matrix_2x2 = Matrix::from([[-3.0, 5.0], [1.0, -2.0]]);
 
-        match matrix_2x2.multiply(&matrix_4x4) {
+        match &matrix_4x4 * &matrix_2x2 {
             Ok(_m) => panic!("We should have an invalid dimension error"),
             Err(_e) => (),
         }
@@ -541,7 +576,7 @@ mod tests {
             [16.0, 26.0, 46.0],
         ]);
 
-        let actual = matrix_4x3.multiply(&matrix_4x4)?;
+        let actual = (&matrix_4x4 * &matrix_4x3)?;
 
         assert_eq!(expected, actual);
 
@@ -561,7 +596,7 @@ mod tests {
 
         let expected = Tuple::new_point(18, 24, 33);
 
-        let actual: Tuple = tuple_matrix.multiply(&matrix)?.into();
+        let actual = Tuple::from((&matrix * &tuple_matrix)?);
 
         assert_eq!(actual, expected);
 
@@ -593,10 +628,7 @@ mod tests {
         let tuple_matrix = Matrix::from(Tuple::new_point(1.0, 2.0, 3.0));
         let identity_4x4 = Matrix::<4, 4>::identity()?;
 
-        assert_eq!(
-            Tuple::from(tuple_matrix.multiply(&identity_4x4)?),
-            tuple.clone()
-        );
+        assert_eq!(Tuple::from((&identity_4x4 * &tuple_matrix)?), tuple.clone());
         Ok(())
     }
 
@@ -788,9 +820,9 @@ mod tests {
             [6.0, -2.0, 0.0, 5.0],
         ]);
 
-        let c = b.multiply(&a)?;
+        let c = (&a * &b)?;
 
-        assert_eq!(inverse_4x4(&b)?.multiply(&c)?, a);
+        assert_eq!((&c * &(inverse_4x4(&b)?))?, a);
 
         Ok(())
     }
