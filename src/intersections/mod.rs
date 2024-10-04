@@ -1,5 +1,5 @@
-#[allow(clippy::module_inception)]
-mod intersections;
+mod objects;
+mod ray;
 
-pub use intersections::Ray;
-pub use intersections::Sphere;
+pub use objects::Sphere;
+pub use ray::Ray;
