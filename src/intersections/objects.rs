@@ -2,6 +2,13 @@ use super::Ray;
 use crate::spatial::Tuple;
 use uuid::Uuid;
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+/// Stores all the variants of the Object type
+pub enum Object {
+    Sphere(Sphere),
+}
+
+#[derive(Debug, Clone, Copy)]
 /// Representation of a unit sphere centred at (0,0,0)
 pub struct Sphere {
     /// Added this field so that no two invocations of the
@@ -22,7 +29,7 @@ impl Sphere {
     /// If there are no points of intersection, an empty vector will
     /// be returned. If there is a tangential intersection, the same
     /// point will be returned twice.
-    pub fn intersect(&self, ray: &Ray) -> Vec<f64> {
+    pub fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
         let sphere_to_ray = &ray.origin - &Tuple::point(0, 0, 0);
         let a = ray.direction.dot(&ray.direction);
         let b = 2.0 * ray.direction.dot(&sphere_to_ray);
@@ -34,7 +41,11 @@ impl Sphere {
         } else {
             let t1 = (-b - discriminant.sqrt()) / (2.0 * a);
             let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
-            vec![t1, t2]
+
+            let i1 = Intersection::new(t1, Object::Sphere(*self));
+            let i2 = Intersection::new(t2, Object::Sphere(*self));
+
+            vec![i1, i2]
         }
     }
 }
@@ -47,9 +58,30 @@ impl Default for Sphere {
     }
 }
 
+impl PartialEq for Sphere {
+    fn eq(&self, other: &Self) -> bool {
+        self._id == other._id
+    }
+}
+
+/// Data structure to keep track of intersections
+/// for a given object
+pub struct Intersection {
+    pub t: f64,
+    pub object: Object,
+}
+
+impl Intersection {
+    /// Create a new Intersection for a given object using
+    /// the calculated `t` value of a Ray intersecting `object`
+    pub fn new(t: f64, object: Object) -> Self {
+        Self { t, object }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{Ray, Sphere};
+    use super::{Intersection, Object, Ray, Sphere};
     use crate::spatial::Tuple;
     use anyhow::Result;
 
@@ -60,8 +92,10 @@ mod tests {
 
         let xs = s.intersect(&ray);
         assert_eq!(xs.len(), 2);
-        assert_eq!(xs[0], 4.0);
-        assert_eq!(xs[1], 6.0);
+        assert_eq!(xs[0].t, 4.0);
+        assert_eq!(xs[0].object, Object::Sphere(s));
+        assert_eq!(xs[1].t, 6.0);
+        assert_eq!(xs[1].object, Object::Sphere(s));
         Ok(())
     }
 
@@ -72,8 +106,10 @@ mod tests {
 
         let xs = s.intersect(&ray);
         assert_eq!(xs.len(), 2);
-        assert_eq!(xs[0], 5.0);
-        assert_eq!(xs[1], 5.0);
+        assert_eq!(xs[0].t, 5.0);
+        assert_eq!(xs[0].object, Object::Sphere(s));
+        assert_eq!(xs[1].t, 5.0);
+        assert_eq!(xs[1].object, Object::Sphere(s));
         Ok(())
     }
 
@@ -94,8 +130,10 @@ mod tests {
 
         let xs = s.intersect(&ray);
         assert_eq!(xs.len(), 2);
-        assert_eq!(xs[0], -1.0);
-        assert_eq!(xs[1], 1.0);
+        assert_eq!(xs[0].t, -1.0);
+        assert_eq!(xs[0].object, Object::Sphere(s));
+        assert_eq!(xs[1].t, 1.0);
+        assert_eq!(xs[1].object, Object::Sphere(s));
         Ok(())
     }
 
@@ -106,8 +144,19 @@ mod tests {
 
         let xs = s.intersect(&ray);
         assert_eq!(xs.len(), 2);
-        assert_eq!(xs[0], -6.0);
-        assert_eq!(xs[1], -4.0);
+        assert_eq!(xs[0].t, -6.0);
+        assert_eq!(xs[0].object, Object::Sphere(s));
+        assert_eq!(xs[1].t, -4.0);
+        assert_eq!(xs[1].object, Object::Sphere(s));
         Ok(())
+    }
+
+    #[test]
+    fn creating_intersection_works() {
+        let s = Sphere::new();
+        let t = 3.5;
+        let i = Intersection::new(t, Object::Sphere(s));
+        assert_eq!(i.t, t);
+        assert_eq!(i.object, Object::Sphere(s));
     }
 }
