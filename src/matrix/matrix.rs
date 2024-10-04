@@ -256,7 +256,7 @@ impl ops::Mul<&Tuple> for &Matrix<4, 4> {
 
         match multiplication_result {
             Ok(m) => Tuple::from(m),
-            Err(_e) => Tuple::new_vector(0, 0, 0),
+            Err(_e) => Tuple::vector(0, 0, 0),
         }
     }
 }
@@ -594,7 +594,7 @@ mod tests {
 
         let tuple_matrix = Matrix::from(Tuple::from((1.0, 2.0, 3.0, 1.0)));
 
-        let expected = Tuple::new_point(18, 24, 33);
+        let expected = Tuple::point(18, 24, 33);
 
         let actual = Tuple::from((&matrix * &tuple_matrix)?);
 
@@ -624,8 +624,8 @@ mod tests {
 
     #[test]
     fn identity_matrix_multiplication_works_with_tuples() -> Result<()> {
-        let tuple = Tuple::new_point(1.0, 2.0, 3.0);
-        let tuple_matrix = Matrix::from(Tuple::new_point(1.0, 2.0, 3.0));
+        let tuple = Tuple::point(1.0, 2.0, 3.0);
+        let tuple_matrix = Matrix::from(Tuple::point(1.0, 2.0, 3.0));
         let identity_4x4 = Matrix::<4, 4>::identity()?;
 
         assert_eq!(Tuple::from((&identity_4x4 * &tuple_matrix)?), tuple.clone());
