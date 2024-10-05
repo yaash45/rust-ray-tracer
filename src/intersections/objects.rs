@@ -64,6 +64,7 @@ impl PartialEq for Sphere {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 /// Data structure to keep track of intersections
 /// for a given object
 pub struct Intersection {
@@ -74,8 +75,11 @@ pub struct Intersection {
 impl Intersection {
     /// Create a new Intersection for a given object using
     /// the calculated `t` value of a Ray intersecting `object`
-    pub fn new(t: f64, object: Object) -> Self {
-        Self { t, object }
+    pub fn new(t: impl Into<f64>, object: Object) -> Self {
+        Self {
+            t: t.into(),
+            object,
+        }
     }
 }
 
