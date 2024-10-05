@@ -25,37 +25,8 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
         Self::default()
     }
 
-    /// Get identity matrix of size S
-    ///
-    /// ```
-    /// use raytracer::matrix::Matrix;
-    ///
-    /// let identity_2x2 = match Matrix::<2,2>::identity() {
-    ///                         Ok(m) => m,
-    ///                         Err(_e) => panic!("this should be a valid identity matrix construction")
-    ///                   };
-    ///
-    /// // Multiplying with an identity matrix gives us back the original one
-    /// let matrix = Matrix::from([[2.0, 4.0], [4.0, 9.0]]);
-    /// match matrix.multiply(&identity_2x2) {
-    ///     Ok(m) => assert_eq!(m, matrix.clone()),
-    ///     Err(_e) => panic!("this should not happen, since it's a valid multiplication")
-    /// };
-    ///
-    /// let identity_2x3_invalid = Matrix::<2,3>::identity();
-    ///
-    /// match identity_2x3_invalid {
-    ///     Ok(_m) => panic!("this should be an invalid construction"),
-    ///     Err(_e) => (),
-    /// };
-    /// ```
-    pub fn identity() -> Result<Self> {
-        if M != N {
-            return Err(Error::msg(
-                "# of rows should equal # of columns for an identity matrix",
-            ));
-        }
-
+    /// Get identity matrix of size MxN, where M = N
+    pub fn identity() -> Self {
         let mut matrix = Matrix::<M, N>::new();
 
         let mut i = 0;
@@ -67,7 +38,7 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
             j += 1;
         }
 
-        Ok(matrix)
+        matrix
     }
 
     /// Performs the multiplication of two matrices.
@@ -605,19 +576,14 @@ mod tests {
 
     #[test]
     fn construct_and_use_identity_matrix() -> Result<()> {
-        let identity_2x2 = Matrix::<2, 2>::identity()?;
+        let identity_2x2 = Matrix::<2, 2>::identity();
         assert_eq!(identity_2x2, Matrix::from([[1.0, 0.0], [0.0, 1.0]]));
 
-        let identity_3x3 = Matrix::<3, 3>::identity()?;
+        let identity_3x3 = Matrix::<3, 3>::identity();
         assert_eq!(
             identity_3x3,
             Matrix::from([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
         );
-
-        match Matrix::<2, 3>::identity() {
-            Ok(_m) => panic!("2x3 is not a valid identity matrix size"),
-            Err(_e) => (),
-        };
 
         Ok(())
     }
@@ -626,7 +592,7 @@ mod tests {
     fn identity_matrix_multiplication_works_with_tuples() -> Result<()> {
         let tuple = Tuple::point(1.0, 2.0, 3.0);
         let tuple_matrix = Matrix::from(Tuple::point(1.0, 2.0, 3.0));
-        let identity_4x4 = Matrix::<4, 4>::identity()?;
+        let identity_4x4 = Matrix::<4, 4>::identity();
 
         assert_eq!(Tuple::from((&identity_4x4 * &tuple_matrix)?), tuple.clone());
         Ok(())
@@ -651,7 +617,7 @@ mod tests {
         assert_eq!(m.transpose(), m_t);
 
         // The identity matrix transposed is the same as the original matrix
-        let identity_4x4 = Matrix::<4, 4>::identity()?;
+        let identity_4x4 = Matrix::<4, 4>::identity();
         assert_eq!(identity_4x4.transpose(), identity_4x4.clone());
 
         Ok(())

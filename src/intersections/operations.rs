@@ -1,4 +1,6 @@
-use super::Intersection;
+use super::{Intersection, Ray};
+use crate::matrix::Matrix;
+use anyhow::Result;
 use core::f64;
 
 /// Given a set of intersections, this function returns the one
@@ -23,10 +25,18 @@ pub fn hit(xs: Vec<Intersection>) -> Option<Intersection> {
     result
 }
 
+pub fn transform_ray(ray: &Ray, matrix: &Matrix<4, 4>) -> Result<Ray> {
+    Ray::new(matrix * &ray.origin, matrix * &ray.direction)
+}
+
 #[cfg(test)]
 mod tests {
-    use super::hit;
-    use crate::intersections::{Intersection, Object, Sphere};
+    use super::{hit, transform_ray};
+    use crate::{
+        intersections::{Intersection, Object, Ray, Sphere},
+        matrix::{scaling, translation},
+        spatial::Tuple,
+    };
     use anyhow::Result;
 
     #[test]
@@ -70,6 +80,26 @@ mod tests {
 
         assert_eq!(hit(vec![i1, i2, i3, i4]), Some(i4));
 
+        Ok(())
+    }
+
+    #[test]
+    fn translating_a_ray() -> Result<()> {
+        let r = Ray::new(Tuple::point(1, 2, 3), Tuple::vector(0, 1, 0))?;
+        let m = translation(3, 4, 5);
+        let r2 = transform_ray(&r, &m)?;
+        assert_eq!(r2.origin, Tuple::point(4, 6, 8));
+        assert_eq!(r2.direction, Tuple::vector(0, 1, 0));
+        Ok(())
+    }
+
+    #[test]
+    fn scaling_a_ray() -> Result<()> {
+        let r = Ray::new(Tuple::point(1, 2, 3), Tuple::vector(0, 1, 0))?;
+        let m = scaling(2, 3, 4);
+        let r2 = transform_ray(&r, &m)?;
+        assert_eq!(r2.origin, Tuple::point(2, 6, 12));
+        assert_eq!(r2.direction, Tuple::vector(0, 3, 0));
         Ok(())
     }
 }
