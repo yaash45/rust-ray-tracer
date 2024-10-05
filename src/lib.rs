@@ -11,6 +11,10 @@ pub mod color;
 /// and methods to operate on them
 pub mod matrix;
 
+/// Contains the implementation for our Rays and their intersections
+/// with various types of objects
+pub mod intersections;
+
 /// The `spatial` module contains the representation for key
 /// three-dimensional spatial properties like Points and Vectors
 pub mod spatial;

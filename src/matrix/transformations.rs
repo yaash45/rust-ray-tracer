@@ -6,8 +6,8 @@ use crate::matrix::Matrix;
 /// use raytracer::{matrix::translation, spatial::Tuple};
 ///
 /// let translator = translation(5, -3, 2);
-/// let point = Tuple::new_point(1, 1, 1);
-/// let expected_translated_point = Tuple::new_point(6, -2, 3);
+/// let point = Tuple::point(1, 1, 1);
+/// let expected_translated_point = Tuple::point(6, -2, 3);
 ///
 /// assert_eq!(&translator * &point, expected_translated_point);
 /// ```
@@ -26,8 +26,8 @@ pub fn translation(x: impl Into<f64>, y: impl Into<f64>, z: impl Into<f64>) -> M
 /// use raytracer::{matrix::scaling, spatial::Tuple};
 ///
 /// let scaling = scaling(2, 2, 2);
-/// let point = Tuple::new_point(1, 1, 1);
-/// let expected_scaled_point = Tuple::new_point(2, 2, 2);
+/// let point = Tuple::point(1, 1, 1);
+/// let expected_scaled_point = Tuple::point(2, 2, 2);
 ///
 /// assert_eq!(&scaling * &point, expected_scaled_point);
 /// ```
@@ -102,9 +102,9 @@ mod tests {
 
     #[test]
     fn translation_of_tuples() -> Result<()> {
-        let point = Tuple::new_point(-3, 4, 5);
+        let point = Tuple::point(-3, 4, 5);
         let transform = translation(5, -3, 2);
-        let expected_destination = Tuple::new_point(2, 1, 7);
+        let expected_destination = Tuple::point(2, 1, 7);
 
         // Translating the input point to the expected destination
         assert_eq!(&transform * &point, expected_destination);
@@ -115,7 +115,7 @@ mod tests {
         assert_eq!(&inv * &expected_destination, point);
 
         // The translation of a vector is the same vector
-        let vector = Tuple::new_vector(-3, 4, 5);
+        let vector = Tuple::vector(-3, 4, 5);
         assert_eq!(&transform * &vector, vector);
 
         Ok(())
@@ -124,15 +124,15 @@ mod tests {
     #[test]
     fn scaling_of_tuples() -> Result<()> {
         let transform = scaling(2, 3, 4);
-        let point = Tuple::new_point(-4, 6, 8);
-        let vector = Tuple::new_vector(-4, 6, 8);
+        let point = Tuple::point(-4, 6, 8);
+        let vector = Tuple::vector(-4, 6, 8);
 
         // Scaling applied to the point
-        let expected_scaled_point = Tuple::new_point(-8, 18, 32);
+        let expected_scaled_point = Tuple::point(-8, 18, 32);
         assert_eq!(&transform * &point, expected_scaled_point);
 
         // Scaling applied to a vector
-        let expected_scaled_vector = Tuple::new_vector(-8, 18, 32);
+        let expected_scaled_vector = Tuple::vector(-8, 18, 32);
         assert_eq!(&transform * &vector, expected_scaled_vector);
 
         // Scaling by the inverse will shrink the tuple instead of growing it
@@ -142,7 +142,7 @@ mod tests {
 
         // We can use scaling to reflect a point along any axes
         let reflect_x = scaling(-1, 1, 1);
-        let reflected_point = Tuple::new_point(-point.get_x(), point.get_y(), point.get_z());
+        let reflected_point = Tuple::point(-point.get_x(), point.get_y(), point.get_z());
         assert_eq!(&reflect_x * &point, reflected_point);
 
         Ok(())
@@ -150,13 +150,13 @@ mod tests {
 
     #[test]
     fn rotation_x_tests() -> Result<()> {
-        let p = Tuple::new_point(0, 1, 0);
+        let p = Tuple::point(0, 1, 0);
         let half_quarter = rotation_x(PI / 4.0);
         let full_quarter = rotation_x(PI / 2.0);
 
         let expected_half_quarter_point =
-            Tuple::new_point(0, ((2_f64).sqrt()) / 2_f64, ((2_f64).sqrt()) / 2_f64);
-        let expected_full_quarter_point = Tuple::new_point(0, 0, 1);
+            Tuple::point(0, ((2_f64).sqrt()) / 2_f64, ((2_f64).sqrt()) / 2_f64);
+        let expected_full_quarter_point = Tuple::point(0, 0, 1);
 
         assert_eq!(&half_quarter * &p, expected_half_quarter_point);
         assert_eq!(&full_quarter * &p, expected_full_quarter_point);
@@ -168,13 +168,13 @@ mod tests {
 
     #[test]
     fn rotation_y_tests() -> Result<()> {
-        let p = Tuple::new_point(0, 0, 1);
+        let p = Tuple::point(0, 0, 1);
         let half_quarter = rotation_y(PI / 4.0);
         let full_quarter = rotation_y(PI / 2.0);
 
         let expected_half_quarter_point =
-            Tuple::new_point(((2_f64).sqrt()) / 2_f64, 0, ((2_f64).sqrt()) / 2_f64);
-        let expected_full_quarter_point = Tuple::new_point(1, 0, 0);
+            Tuple::point(((2_f64).sqrt()) / 2_f64, 0, ((2_f64).sqrt()) / 2_f64);
+        let expected_full_quarter_point = Tuple::point(1, 0, 0);
 
         assert_eq!(&half_quarter * &p, expected_half_quarter_point);
         assert_eq!(&full_quarter * &p, expected_full_quarter_point);
@@ -186,13 +186,13 @@ mod tests {
 
     #[test]
     fn rotation_z_tests() -> Result<()> {
-        let p = Tuple::new_point(0, 1, 0);
+        let p = Tuple::point(0, 1, 0);
         let half_quarter = rotation_z(PI / 4.0);
         let full_quarter = rotation_z(PI / 2.0);
 
         let expected_half_quarter_point =
-            Tuple::new_point(-((2_f64).sqrt()) / 2_f64, ((2_f64).sqrt()) / 2_f64, 0);
-        let expected_full_quarter_point = Tuple::new_point(-1, 0, 0);
+            Tuple::point(-((2_f64).sqrt()) / 2_f64, ((2_f64).sqrt()) / 2_f64, 0);
+        let expected_full_quarter_point = Tuple::point(-1, 0, 0);
 
         assert_eq!(&half_quarter * &p, expected_half_quarter_point);
         assert_eq!(&full_quarter * &p, expected_full_quarter_point);
@@ -204,36 +204,36 @@ mod tests {
 
     #[test]
     fn shearing_tests() -> Result<()> {
-        let p = Tuple::new_point(2, 3, 4);
+        let p = Tuple::point(2, 3, 4);
 
         // case 1
         let t1 = shearing(1, 0, 0, 0, 0, 0);
-        let expected_shear_t1 = Tuple::new_point(5, 3, 4);
+        let expected_shear_t1 = Tuple::point(5, 3, 4);
         assert_eq!(&t1 * &p, expected_shear_t1);
 
         // case 2
         let t2 = shearing(0, 1, 0, 0, 0, 0);
-        let expected_shear_t2 = Tuple::new_point(6, 3, 4);
+        let expected_shear_t2 = Tuple::point(6, 3, 4);
         assert_eq!(&t2 * &p, expected_shear_t2);
 
         // case 3
         let t3 = shearing(0, 0, 1, 0, 0, 0);
-        let expected_shear_t3 = Tuple::new_point(2, 5, 4);
+        let expected_shear_t3 = Tuple::point(2, 5, 4);
         assert_eq!(&t3 * &p, expected_shear_t3);
 
         // case 4
         let t4 = shearing(0, 0, 0, 1, 0, 0);
-        let expected_shear_t4 = Tuple::new_point(2, 7, 4);
+        let expected_shear_t4 = Tuple::point(2, 7, 4);
         assert_eq!(&t4 * &p, expected_shear_t4);
 
         // case 5
         let t5 = shearing(0, 0, 0, 0, 1, 0);
-        let expected_shear_t5 = Tuple::new_point(2, 3, 6);
+        let expected_shear_t5 = Tuple::point(2, 3, 6);
         assert_eq!(&t5 * &p, expected_shear_t5);
 
         // case 6
         let t6 = shearing(0, 0, 0, 0, 0, 1);
-        let expected_shear_t6 = Tuple::new_point(2, 3, 7);
+        let expected_shear_t6 = Tuple::point(2, 3, 7);
         assert_eq!(&t6 * &p, expected_shear_t6);
 
         Ok(())
@@ -241,20 +241,20 @@ mod tests {
 
     #[test]
     fn chaining_transforms() -> Result<()> {
-        let p = Tuple::new_point(1, 0, 1);
+        let p = Tuple::point(1, 0, 1);
         let a = rotation_x(PI / 2.0);
         let b = scaling(5, 5, 5);
         let c = translation(10, 5, 7);
 
         // Case 1: without chaining
         let result_rotate = &a * &p;
-        assert_eq!(result_rotate, Tuple::new_point(1, -1, 0));
+        assert_eq!(result_rotate, Tuple::point(1, -1, 0));
 
         let result_scale = &b * &result_rotate;
-        assert_eq!(result_scale, Tuple::new_point(5, -5, 0));
+        assert_eq!(result_scale, Tuple::point(5, -5, 0));
 
         let result_translate = &c * &result_scale;
-        assert_eq!(result_translate, Tuple::new_point(15, 0, 7));
+        assert_eq!(result_translate, Tuple::point(15, 0, 7));
 
         // Case 2: with chaining
         let chained_transform = a.multiply(&b)?.multiply(&c)?;

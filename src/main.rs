@@ -11,12 +11,12 @@ use raytracer::tick::{tick, Environment, Projectile};
 fn projectile_example() -> Result<()> {
     println!("It's tick tick time");
 
-    let p = Tuple::new_point(0, 1, 0);
-    let v = &Tuple::new_vector(1, 1.8, 0).normalize() * 11.25;
+    let p = Tuple::point(0, 1, 0);
+    let v = &Tuple::vector(1, 1.8, 0).normalize() * 11.25;
     let mut projectile = Projectile::new(p, v);
 
-    let g = Tuple::new_vector(0, -0.1, 0);
-    let w = Tuple::new_vector(-0.01, 0, 0);
+    let g = Tuple::vector(0, -0.1, 0);
+    let w = Tuple::vector(-0.01, 0, 0);
     let environment = Environment::new(g, w);
 
     let width = 900;
@@ -49,7 +49,7 @@ fn analog_clock() -> Result<()> {
     let height = 500;
     let width = 500;
     let mut canvas = Canvas::new(width, height);
-    let p = Tuple::new_point(0, 200, 0);
+    let p = Tuple::point(0, 200, 0);
 
     let mut angle = 0_f64;
 

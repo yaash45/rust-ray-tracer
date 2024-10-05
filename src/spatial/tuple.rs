@@ -38,9 +38,9 @@ impl Tuple {
     /// use raytracer::spatial::Tuple;
     ///
     /// // Create a new point (1,1,1)
-    /// let point = Tuple::new_point(1,1,1);
+    /// let point = Tuple::point(1,1,1);
     /// ```
-    pub fn new_point(x: impl Into<f64>, y: impl Into<f64>, z: impl Into<f64>) -> Self {
+    pub fn point(x: impl Into<f64>, y: impl Into<f64>, z: impl Into<f64>) -> Self {
         Self::new(x.into(), y.into(), z.into(), Identifier::Point)
     }
 
@@ -50,9 +50,9 @@ impl Tuple {
     /// use raytracer::spatial::Tuple;
     ///
     /// // Create a new vector (1,1,1)
-    /// let vector = Tuple::new_vector(1,1,1);
+    /// let vector = Tuple::vector(1,1,1);
     /// ```
-    pub fn new_vector(x: impl Into<f64>, y: impl Into<f64>, z: impl Into<f64>) -> Self {
+    pub fn vector(x: impl Into<f64>, y: impl Into<f64>, z: impl Into<f64>) -> Self {
         Self::new(x.into(), y.into(), z.into(), Identifier::Vector)
     }
 
@@ -62,7 +62,7 @@ impl Tuple {
     /// use raytracer::spatial::Tuple;
     ///
     /// // Create a new point
-    /// let p = Tuple::new_point(0,0,0);
+    /// let p = Tuple::point(0,0,0);
     /// assert!(p.is_a_point());
     /// assert!(!p.is_a_vector());
     /// ```
@@ -76,7 +76,7 @@ impl Tuple {
     /// use raytracer::spatial::Tuple;
     ///
     /// // Create a new vector
-    /// let v = Tuple::new_vector(0,1.4,6.5);
+    /// let v = Tuple::vector(0,1.4,6.5);
     /// assert!(!v.is_a_point());
     /// assert!(v.is_a_vector());
     /// ```
@@ -120,7 +120,7 @@ impl Tuple {
         let new_y = (self.z * other.x) - (self.x * other.z);
         let new_z = (self.x * other.y) - (self.y * other.x);
 
-        Self::new_vector(new_x, new_y, new_z)
+        Self::vector(new_x, new_y, new_z)
     }
 
     /// Returns the x coordinate of the [Tuple]
@@ -293,7 +293,7 @@ mod tests {
         let z = 3_f64;
 
         let expected = Tuple::new(x, y, z, Identifier::Point);
-        let actual = Tuple::new_point(x, y, z);
+        let actual = Tuple::point(x, y, z);
         assert_eq!(actual, expected);
     }
 
@@ -304,25 +304,25 @@ mod tests {
         let z = 3_f64;
 
         let expected = Tuple::new(x, y, z, Identifier::Vector);
-        let actual = Tuple::new_vector(x, y, z);
+        let actual = Tuple::vector(x, y, z);
         assert_eq!(actual, expected);
     }
 
     #[test]
     fn add_tuples() {
-        let point_a = Tuple::new_point(3.0, -2.0, 5.0);
-        let point_b = Tuple::new_point(3.0, -2.0, 5.0);
-        let vector_a = Tuple::new_vector(-2.0, 3.0, 1.0);
-        let vector_b = Tuple::new_vector(-2.0, -3.0, 1.0);
+        let point_a = Tuple::point(3.0, -2.0, 5.0);
+        let point_b = Tuple::point(3.0, -2.0, 5.0);
+        let vector_a = Tuple::vector(-2.0, 3.0, 1.0);
+        let vector_b = Tuple::vector(-2.0, -3.0, 1.0);
 
         // Adding a point and a vector must yield a point
-        let expected = Tuple::new_point(1.0, 1.0, 6.0);
+        let expected = Tuple::point(1.0, 1.0, 6.0);
         let actual = point_a + vector_a;
         assert!(actual.is_a_point());
         assert_eq!(expected, actual);
 
         // Adding two vectors must yield a vector
-        let expected = Tuple::new_vector(-4.0, 0.0, 2.0);
+        let expected = Tuple::vector(-4.0, 0.0, 2.0);
         let actual = vector_a + vector_b;
         assert!(actual.is_a_vector());
         assert_eq!(expected, actual);
@@ -337,19 +337,19 @@ mod tests {
 
     #[test]
     fn subtract_tuples() {
-        let point_a = Tuple::new_point(3.0, -2.0, 5.0);
-        let point_b = Tuple::new_point(1.0, 4.0, 3.0);
-        let vector_a = Tuple::new_vector(-2.0, 3.0, 1.0);
-        let vector_b = Tuple::new_vector(5.0, -3.0, -5.0);
+        let point_a = Tuple::point(3.0, -2.0, 5.0);
+        let point_b = Tuple::point(1.0, 4.0, 3.0);
+        let vector_a = Tuple::vector(-2.0, 3.0, 1.0);
+        let vector_b = Tuple::vector(5.0, -3.0, -5.0);
 
         // Adding a point and a vector must yield a point
-        let expected = Tuple::new_point(5.0, -5.0, 4.0);
+        let expected = Tuple::point(5.0, -5.0, 4.0);
         let actual = &point_a - &vector_a;
         assert!(actual.is_a_point());
         assert_eq!(expected, actual);
 
         // Adding two vectors must yield a vector
-        let expected = Tuple::new_vector(-7.0, 6.0, 6.0);
+        let expected = Tuple::vector(-7.0, 6.0, 6.0);
         let actual = &vector_a - &vector_b;
         assert!(actual.is_a_vector());
         assert_eq!(expected, actual);
@@ -364,11 +364,11 @@ mod tests {
 
     #[test]
     fn negate_tuples() {
-        let point_a = Tuple::new_point(3.0, -2.0, 5.0);
-        let vector_a = Tuple::new_vector(-2.0, 3.0, 1.0);
+        let point_a = Tuple::point(3.0, -2.0, 5.0);
+        let vector_a = Tuple::vector(-2.0, 3.0, 1.0);
 
         // Negating a vector should yield a vector with the coordinates negated
-        let expected = Tuple::new_vector(2.0, -3.0, -1.0);
+        let expected = Tuple::vector(2.0, -3.0, -1.0);
         let actual = -&vector_a;
         assert!(actual.is_a_vector());
         assert_eq!(actual, expected);
@@ -383,17 +383,17 @@ mod tests {
 
     #[test]
     fn scale_vectors() {
-        let vector_a = Tuple::new_vector(-2.0, 3.0, 1.0);
+        let vector_a = Tuple::vector(-2.0, 3.0, 1.0);
         let scalar = 2.0;
 
         // Check multiplication scaling
-        let expected = Tuple::new_vector(-4.0, 6.0, 2.0);
+        let expected = Tuple::vector(-4.0, 6.0, 2.0);
         let actual = &vector_a * scalar;
         assert!(actual.is_a_vector());
         assert_eq!(actual, expected);
 
         // Check division scaling
-        let expected = Tuple::new_vector(-1.0, 1.5, 0.5);
+        let expected = Tuple::vector(-1.0, 1.5, 0.5);
         let actual = &vector_a / scalar;
         assert!(actual.is_a_vector());
         assert_eq!(actual, expected);
@@ -401,32 +401,32 @@ mod tests {
 
     #[test]
     fn magnitude() {
-        let vector_a = Tuple::new_vector(1, 0, 0);
+        let vector_a = Tuple::vector(1, 0, 0);
         assert_eq!(vector_a.magnitude(), 1.0);
 
-        let vector_b = Tuple::new_vector(0, 1, 0);
+        let vector_b = Tuple::vector(0, 1, 0);
         assert_eq!(vector_b.magnitude(), 1.0);
 
-        let vector_c = Tuple::new_vector(0, 0, 1);
+        let vector_c = Tuple::vector(0, 0, 1);
         assert_eq!(vector_c.magnitude(), 1.0);
 
-        let vector_d = Tuple::new_vector(1, 2, 3);
+        let vector_d = Tuple::vector(1, 2, 3);
         assert_eq!(vector_d.magnitude(), f64::sqrt(14.0));
 
-        let vector_e = Tuple::new_vector(-1, -2, -3);
+        let vector_e = Tuple::vector(-1, -2, -3);
         assert_eq!(vector_e.magnitude(), f64::sqrt(14.0));
     }
 
     #[test]
     fn normalize() {
-        let vector_a = Tuple::new_vector(4, 0, 0);
-        assert_eq!(vector_a.normalize(), Tuple::new_vector(1, 0, 0));
+        let vector_a = Tuple::vector(4, 0, 0);
+        assert_eq!(vector_a.normalize(), Tuple::vector(1, 0, 0));
 
-        let vector_b = Tuple::new_vector(1, 2, 3);
+        let vector_b = Tuple::vector(1, 2, 3);
         let normalized_b = vector_b.normalize();
         assert_eq!(
             normalized_b,
-            Tuple::new_vector(
+            Tuple::vector(
                 1.0 / f64::sqrt(14.0),
                 2.0 / f64::sqrt(14.0),
                 3.0 / f64::sqrt(14.0)
@@ -437,17 +437,17 @@ mod tests {
 
     #[test]
     fn dot() {
-        let a = Tuple::new_vector(1, 2, 3);
-        let b = Tuple::new_vector(2, 3, 4);
+        let a = Tuple::vector(1, 2, 3);
+        let b = Tuple::vector(2, 3, 4);
         assert_eq!(a.dot(&b), 20.0);
     }
 
     #[test]
     fn cross() {
-        let a = Tuple::new_vector(1, 2, 3);
-        let b = Tuple::new_vector(2, 3, 4);
+        let a = Tuple::vector(1, 2, 3);
+        let b = Tuple::vector(2, 3, 4);
 
-        assert_eq!(a.cross(&b), Tuple::new_vector(-1, 2, -1));
-        assert_eq!(b.cross(&a), Tuple::new_vector(1, -2, 1));
+        assert_eq!(a.cross(&b), Tuple::vector(-1, 2, -1));
+        assert_eq!(b.cross(&a), Tuple::vector(1, -2, 1));
     }
 }
