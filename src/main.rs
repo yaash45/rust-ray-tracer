@@ -3,10 +3,12 @@ use std::f64::consts::PI;
 use anyhow::Result;
 use raytracer::canvas::Canvas;
 use raytracer::color::Color;
-use raytracer::matrix::{rotation_z, translation};
+use raytracer::intersections::{hit, Ray, Sphere};
+use raytracer::matrix::{rotation_z, scaling, translation};
 use raytracer::spatial::Tuple;
 use raytracer::tick::{tick, Environment, Projectile};
 
+#[allow(dead_code)]
 /// Chapter 2 tick example
 fn projectile_example() -> Result<()> {
     println!("It's tick tick time");
@@ -44,6 +46,7 @@ fn projectile_example() -> Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 /// Chapter 4 analock clock example
 fn analog_clock() -> Result<()> {
     let height = 500;
@@ -75,12 +78,58 @@ fn analog_clock() -> Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
+fn cast_rays_on_sphere() -> Result<()> {
+    let canvas_pixels = 100;
+    let height = canvas_pixels;
+    let width = canvas_pixels;
+    let ray_origin = Tuple::point(0, 0, -5);
+
+    let wall_z = 10.0;
+    let wall_size = 7.0; // max y
+    let half = wall_size / 2.0;
+    let pixel_size = wall_size / canvas_pixels as f64;
+
+    let mut canvas = Canvas::new(height, width);
+
+    let mut s = Sphere::new();
+    s.set_transform((&rotation_z(PI / 4.0) * &scaling(0.5, 1, 1))?);
+
+    for y in 0..(height - 1) {
+        let world_y = half - (y as f64 * pixel_size);
+
+        for x in 0..(width - 1) {
+            let world_x = -half + (x as f64 * pixel_size);
+
+            let position_on_canvas = Tuple::point(world_x, world_y, wall_z);
+            let direction = (&position_on_canvas - &ray_origin).normalize();
+
+            let ray = Ray::new(ray_origin, direction)?;
+
+            if hit(s.intersect(&ray)?).is_some() {
+                canvas.write_pixel(x, y, Color::red())?;
+            }
+        }
+    }
+
+    std::fs::write(
+        "./cast_rays.ppm",
+        canvas.to_ppm().expect("could not convert to ppm"),
+    )
+    .expect("Cannot write");
+
+    Ok(())
+}
+
 fn main() -> Result<()> {
     // Projectile example from chapter 2
     projectile_example()?;
 
     // analog clock example from chapter 4
     analog_clock()?;
+
+    // cast rays on sphere example from chapter 5
+    cast_rays_on_sphere()?;
 
     Ok(())
 }
