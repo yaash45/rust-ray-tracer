@@ -142,6 +142,12 @@ impl Tuple {
     pub fn get_w(&self) -> f64 {
         self.w.value() as f64
     }
+
+    /// Returns a vector with the x,y,z values
+    /// of the current [Tuple]
+    pub fn convert_to_vector(&self) -> Tuple {
+        Tuple::vector(self.x, self.y, self.z)
+    }
 }
 
 impl ops::Add<&Tuple> for &Tuple {
@@ -449,5 +455,17 @@ mod tests {
 
         assert_eq!(a.cross(&b), Tuple::vector(-1, 2, -1));
         assert_eq!(b.cross(&a), Tuple::vector(1, -2, 1));
+    }
+
+    #[test]
+    fn convert_to_vector_works() {
+        let p = Tuple::point(2, 3, 4);
+
+        // case 1: point to vector
+        assert_eq!(p.convert_to_vector(), Tuple::vector(2, 3, 4));
+
+        let v = Tuple::vector(2, 4, 5);
+        // case 2: vector to vector
+        assert_eq!(v.convert_to_vector(), Tuple::vector(2, 4, 5));
     }
 }
