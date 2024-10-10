@@ -6,6 +6,15 @@ use crate::{
 use anyhow::Result;
 use uuid::Uuid;
 
+/// Trait that can be used to implement a way to get
+/// surface normals for any objects that might implement
+/// this trait
+pub trait SurfaceNormal {
+    /// Returns a normalized surface normal vector for
+    /// any object that implements this method
+    fn normal_at(&self, point: Tuple) -> Result<Tuple>;
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 /// Stores all the variants of the Object type
 pub enum Object {
@@ -82,6 +91,15 @@ impl PartialEq for Sphere {
     }
 }
 
+impl SurfaceNormal for Sphere {
+    fn normal_at(&self, point: Tuple) -> Result<Tuple> {
+        let object_point = &(inverse_4x4(&self.transform_matrix)?) * &point;
+        let object_normal = &object_point - &Tuple::point(0, 0, 0);
+        let world_normal = &(inverse_4x4(&self.transform_matrix)?.transpose()) * &object_normal;
+        Ok(world_normal.convert_to_vector().normalize())
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 /// Data structure to keep track of intersections
 /// for a given object
@@ -103,9 +121,11 @@ impl Intersection {
 
 #[cfg(test)]
 mod tests {
-    use super::{Intersection, Object, Ray, Sphere};
+    use std::f64::consts::{FRAC_1_SQRT_2, PI, SQRT_2};
+
+    use super::{Intersection, Object, Ray, Sphere, SurfaceNormal};
     use crate::{
-        matrix::{scaling, translation, Matrix},
+        matrix::{rotation_z, scaling, translation, Matrix},
         spatial::Tuple,
     };
     use anyhow::Result;
@@ -225,6 +245,50 @@ mod tests {
         let xs = s.intersect(&r)?;
 
         assert_eq!(xs.len(), 0);
+
+        Ok(())
+    }
+
+    #[test]
+    fn surface_normal_for_sphere() -> Result<()> {
+        let mut s = Sphere::new();
+
+        // test some basic surface normals out for a unit sphere
+        assert_eq!(s.normal_at(Tuple::point(1, 0, 0))?, Tuple::vector(1, 0, 0));
+        assert_eq!(s.normal_at(Tuple::point(0, 1, 0))?, Tuple::vector(0, 1, 0));
+        assert_eq!(s.normal_at(Tuple::point(0, 0, 1))?, Tuple::vector(0, 0, 1));
+
+        // now we check that the normal vector returned is also normalized
+        let n = Tuple::vector(
+            3.0_f64.sqrt() / 3.0,
+            3.0_f64.sqrt() / 3.0,
+            3.0_f64.sqrt() / 3.0,
+        );
+
+        assert_eq!(
+            s.normal_at(Tuple::point(
+                3.0_f64.sqrt() / 3.0,
+                3.0_f64.sqrt() / 3.0,
+                3.0_f64.sqrt() / 3.0
+            ))?,
+            n
+        );
+
+        assert_eq!(n, n.normalize());
+
+        // the normal_at function should be able to handle transforms
+        s.set_transform(translation(0, 1, 0));
+        assert_eq!(
+            s.normal_at(Tuple::point(0, 1.70711, -FRAC_1_SQRT_2))?,
+            Tuple::vector(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2)
+        );
+
+        let transform = (&scaling(1, 0.5, 1) * &rotation_z(PI / 5.0))?;
+        s.set_transform(transform);
+        assert_eq!(
+            s.normal_at(Tuple::point(0, SQRT_2 / 2.0, -SQRT_2 / 2.0))?,
+            Tuple::vector(0, 0.97014, -0.24254)
+        );
 
         Ok(())
     }

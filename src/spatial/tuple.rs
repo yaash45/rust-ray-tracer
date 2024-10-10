@@ -142,6 +142,10 @@ impl Tuple {
     pub fn get_w(&self) -> f64 {
         self.w.value() as f64
     }
+
+    pub fn convert_to_vector(&self) -> Tuple {
+        Tuple::vector(self.x, self.y, self.z)
+    }
 }
 
 impl ops::Add<&Tuple> for &Tuple {

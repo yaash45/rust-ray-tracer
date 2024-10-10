@@ -1,5 +1,5 @@
 use super::{Intersection, Ray};
-use crate::matrix::Matrix;
+use crate::{matrix::Matrix, spatial::Tuple};
 use anyhow::Result;
 use core::f64;
 
@@ -25,13 +25,24 @@ pub fn hit(xs: Vec<Intersection>) -> Option<Intersection> {
     result
 }
 
+/// Transforms a ray by performing a matrix multiplication
+/// of the ray and the given input matrix. This is useful
+/// to transform rays instead of transforming objects themselves.
 pub fn transform_ray(ray: &Ray, matrix: &Matrix<4, 4>) -> Result<Ray> {
     Ray::new(matrix * &ray.origin, matrix * &ray.direction)
 }
 
+/// Calculates the reflection of an inbound vector for a
+/// surface given the normal vector for that point.
+pub fn reflect(inbound: &Tuple, normal: &Tuple) -> Tuple {
+    inbound - &(normal * (2.0 * normal.dot(inbound)))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{hit, transform_ray};
+    use std::f64::consts::SQRT_2;
+
+    use super::{hit, reflect, transform_ray};
     use crate::{
         intersections::{Intersection, Object, Ray, Sphere},
         matrix::{scaling, translation},
@@ -101,5 +112,18 @@ mod tests {
         assert_eq!(r2.origin, Tuple::point(2, 6, 12));
         assert_eq!(r2.direction, Tuple::vector(0, 3, 0));
         Ok(())
+    }
+
+    #[test]
+    fn reflect_operation_works() {
+        // Reflecting a vector approaching at 45 degree angle
+        let v = Tuple::vector(1, -1, 0);
+        let n = Tuple::vector(0, 1, 0);
+        assert_eq!(reflect(&v, &n), Tuple::vector(1, 1, 0));
+
+        // Reflecting off a slanted surface
+        let v = Tuple::vector(0, -1, 0);
+        let n = Tuple::vector(SQRT_2 / 2.0, SQRT_2 / 2.0, 0);
+        assert_eq!(reflect(&v, &n), Tuple::vector(1, 0, 0));
     }
 }
