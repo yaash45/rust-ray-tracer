@@ -3,7 +3,8 @@ use std::f64::consts::PI;
 use anyhow::Result;
 use raytracer::canvas::Canvas;
 use raytracer::color::Color;
-use raytracer::intersections::{hit, Ray, Sphere};
+use raytracer::intersections::{hit, Ray, Sphere, SurfaceNormal};
+use raytracer::lights::{lighting, PointLight};
 use raytracer::matrix::{rotation_z, scaling, translation};
 use raytracer::spatial::Tuple;
 use raytracer::tick::{tick, Environment, Projectile};
@@ -79,7 +80,7 @@ fn analog_clock() -> Result<()> {
 }
 
 #[allow(dead_code)]
-fn cast_rays_on_sphere() -> Result<()> {
+fn cast_rays_on_sphere_2d() -> Result<()> {
     let canvas_pixels = 100;
     let height = canvas_pixels;
     let width = canvas_pixels;
@@ -121,15 +122,74 @@ fn cast_rays_on_sphere() -> Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
+fn cast_rays_on_sphere_3d() -> Result<()> {
+    println!("It's time to render your first 3D sphere!");
+
+    let canvas_pixels = 100;
+    let height = canvas_pixels;
+    let width = canvas_pixels;
+    let ray_origin = Tuple::point(0, 0, -5);
+
+    let wall_z = 10.0;
+    let wall_size = 7.0; // max y
+    let half = wall_size / 2.0;
+    let pixel_size = wall_size / canvas_pixels as f64;
+
+    let mut canvas = Canvas::new(height, width);
+
+    let mut s = Sphere::new();
+    s.material.set_color(Color::new(1, 1, 1));
+
+    let light_position = Tuple::point(-10, 10, -10);
+    let light_color = Color::new(1, 0, 0);
+    let light = PointLight::new(light_position, light_color)?;
+
+    for y in 0..(width - 1) {
+        let world_y = half - (y as f64 * pixel_size);
+
+        for x in 0..(height - 1) {
+            let world_x = -half + (x as f64 * pixel_size);
+
+            let position_on_canvas = Tuple::point(world_x, world_y, wall_z);
+            let direction = (&position_on_canvas - &ray_origin).normalize();
+
+            let ray = Ray::new(ray_origin, direction)?;
+
+            let cur_hit = hit(s.intersect(&ray)?);
+
+            if cur_hit.is_some() {
+                let point = ray.position(cur_hit.unwrap().t);
+                let normal = s.normal_at(point)?;
+                let eye = -ray.direction;
+                let color = lighting(&s.material, &light, &point, &eye, &normal);
+
+                canvas.write_pixel(x, y, color)?;
+            }
+        }
+    }
+
+    std::fs::write(
+        "./cast_rays3d.ppm",
+        canvas.to_ppm().expect("could not convert to ppm"),
+    )
+    .expect("Cannot write");
+
+    Ok(())
+}
+
 fn main() -> Result<()> {
     // Projectile example from chapter 2
-    projectile_example()?;
+    // projectile_example()?;
 
     // analog clock example from chapter 4
-    analog_clock()?;
+    // analog_clock()?;
 
     // cast rays on sphere example from chapter 5
-    cast_rays_on_sphere()?;
+    // cast_rays_on_sphere_2d()?;
+
+    // cast rays on a sphere example from chapter 6
+    cast_rays_on_sphere_3d()?;
 
     Ok(())
 }

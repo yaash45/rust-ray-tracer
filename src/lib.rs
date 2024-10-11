@@ -15,6 +15,8 @@ pub mod matrix;
 /// with various types of objects
 pub mod intersections;
 
+pub mod lights;
+
 /// The `spatial` module contains the representation for key
 /// three-dimensional spatial properties like Points and Vectors
 pub mod spatial;

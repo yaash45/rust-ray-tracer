@@ -1,5 +1,6 @@
-use super::{transform_ray, Ray};
+use super::{transform_ray, Intersection, Ray};
 use crate::{
+    lights::Material,
     matrix::{inverse_4x4, Matrix},
     spatial::Tuple,
 };
@@ -29,6 +30,7 @@ pub struct Sphere {
     /// to maintain uniqueness with each creation.
     _id: Uuid,
     transform_matrix: Matrix<4, 4>,
+    pub material: Material,
 }
 
 impl Sphere {
@@ -74,6 +76,11 @@ impl Sphere {
     pub fn set_transform(&mut self, t: Matrix<4, 4>) {
         self.transform_matrix = t;
     }
+
+    /// Set the material for a sphere
+    pub fn set_material(&mut self, m: Material) {
+        self.material = m;
+    }
 }
 
 impl Default for Sphere {
@@ -81,6 +88,7 @@ impl Default for Sphere {
         Self {
             _id: Uuid::new_v4(),
             transform_matrix: Matrix::<4, 4>::identity(),
+            material: Material::new(),
         }
     }
 }
@@ -100,31 +108,14 @@ impl SurfaceNormal for Sphere {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-/// Data structure to keep track of intersections
-/// for a given object
-pub struct Intersection {
-    pub t: f64,
-    pub object: Object,
-}
-
-impl Intersection {
-    /// Create a new Intersection for a given object using
-    /// the calculated `t` value of a Ray intersecting `object`
-    pub fn new(t: impl Into<f64>, object: Object) -> Self {
-        Self {
-            t: t.into(),
-            object,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::f64::consts::{FRAC_1_SQRT_2, PI, SQRT_2};
 
     use super::{Intersection, Object, Ray, Sphere, SurfaceNormal};
     use crate::{
+        color::Color,
+        lights::Material,
         matrix::{rotation_z, scaling, translation, Matrix},
         spatial::Tuple,
     };
@@ -291,5 +282,24 @@ mod tests {
         );
 
         Ok(())
+    }
+
+    #[test]
+    fn sphere_starts_with_default_material() {
+        let s = Sphere::new();
+        assert_eq!(s.material, Material::new());
+    }
+
+    #[test]
+    fn sphere_material_can_be_set() {
+        let mut s = Sphere::new();
+        let mut m = Material::new();
+
+        m.set_color(Color::green());
+        m.set_ambient(0.5);
+
+        s.set_material(m);
+        assert_eq!(s.material.get_color(), Color::green());
+        assert_eq!(s.material.get_ambient(), 0.5);
     }
 }

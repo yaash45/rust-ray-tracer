@@ -2,7 +2,7 @@ use crate::utils::float_equals;
 use std::fmt::Display;
 use std::ops;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 /// Representation of colors using RGB values
 pub struct Color {
     pub red: f64,
@@ -172,6 +172,30 @@ impl ops::Add<&Color> for &Color {
     }
 }
 
+impl ops::Add<Color> for Color {
+    type Output = Color;
+
+    fn add(self, rhs: Color) -> Self::Output {
+        Color::new(
+            self.red + rhs.red,
+            self.green + rhs.green,
+            self.blue + rhs.blue,
+        )
+    }
+}
+
+impl ops::Sub<Color> for Color {
+    type Output = Color;
+
+    fn sub(self, rhs: Color) -> Self::Output {
+        Color::new(
+            self.red - rhs.red,
+            self.green - rhs.green,
+            self.blue - rhs.blue,
+        )
+    }
+}
+
 impl ops::Sub<&Color> for &Color {
     type Output = Color;
 
@@ -186,16 +210,42 @@ impl ops::Sub<&Color> for &Color {
 
 impl<T> ops::Mul<T> for &Color
 where
-    T: Into<f64> + Clone,
+    T: Into<f64> + Clone + Copy,
 {
     type Output = Color;
 
     fn mul(self, rhs: T) -> Self::Output {
         Color::new(
-            self.red * rhs.clone().into(),
-            self.green * rhs.clone().into(),
-            self.blue * rhs.clone().into(),
+            self.red * rhs.into(),
+            self.green * rhs.into(),
+            self.blue * rhs.into(),
         )
+    }
+}
+
+impl<T> ops::Mul<T> for Color
+where
+    T: Into<f64> + Clone + Copy,
+{
+    type Output = Color;
+
+    fn mul(self, rhs: T) -> Self::Output {
+        Color::new(
+            self.red * rhs.into(),
+            self.green * rhs.into(),
+            self.blue * rhs.into(),
+        )
+    }
+}
+
+impl<T> ops::MulAssign<T> for Color
+where
+    T: Into<f64> + Clone + Copy,
+{
+    fn mul_assign(&mut self, rhs: T) {
+        self.red = rhs.into();
+        self.green = rhs.into();
+        self.blue = rhs.into();
     }
 }
 
@@ -261,22 +311,22 @@ mod tests {
         let c_a = Color::from((0.9, 0.6, 0.75));
         let c_b = Color::from((0.7, 0.1, 0.25));
 
-        assert_eq!(&c_a + &c_b, Color::from((1.6, 0.7, 1.0)));
+        assert_eq!(c_a + c_b, Color::from((1.6, 0.7, 1.0)));
 
         // I am expressing the expected color this way because
         // rust has a small deviation in the result of the f64
         // subtraction
-        assert_eq!(&c_a - &c_b, Color::from((0.2, 0.5, 0.50)));
+        assert_eq!(c_a - c_b, Color::from((0.2, 0.5, 0.50)));
 
         let c_c = Color::from((0.2, 0.3, 0.4));
         let scalar = 2;
 
-        assert_eq!(&c_c * scalar, Color::from((0.4, 0.6, 0.8)));
+        assert_eq!(c_c * scalar, Color::from((0.4, 0.6, 0.8)));
 
         let c_d = Color::from((1, 0.2, 0.4));
         let c_e = Color::from((0.9, 1, 0.1));
 
-        assert_eq!(&c_d * &c_e, Color::from((0.9, 0.2, 0.04)));
+        assert_eq!(c_d * c_e, Color::from((0.9, 0.2, 0.04)));
         assert_eq!(c_d.hadamard_product(&c_e), Color::from((0.9, 0.2, 0.04)));
     }
 

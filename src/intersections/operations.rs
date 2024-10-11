@@ -1,4 +1,4 @@
-use super::{Intersection, Ray};
+use super::{Object, Ray};
 use crate::{matrix::Matrix, spatial::Tuple};
 use anyhow::Result;
 use core::f64;
@@ -25,6 +25,25 @@ pub fn hit(xs: Vec<Intersection>) -> Option<Intersection> {
     result
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+/// Data structure to keep track of intersections
+/// for a given object
+pub struct Intersection {
+    pub t: f64,
+    pub object: Object,
+}
+
+impl Intersection {
+    /// Create a new Intersection for a given object using
+    /// the calculated `t` value of a Ray intersecting `object`
+    pub fn new(t: impl Into<f64>, object: Object) -> Self {
+        Self {
+            t: t.into(),
+            object,
+        }
+    }
+}
+
 /// Transforms a ray by performing a matrix multiplication
 /// of the ray and the given input matrix. This is useful
 /// to transform rays instead of transforming objects themselves.
@@ -42,9 +61,9 @@ pub fn reflect(inbound: &Tuple, normal: &Tuple) -> Tuple {
 mod tests {
     use std::f64::consts::SQRT_2;
 
-    use super::{hit, reflect, transform_ray};
+    use super::{hit, reflect, transform_ray, Intersection};
     use crate::{
-        intersections::{Intersection, Object, Ray, Sphere},
+        intersections::{Object, Ray, Sphere},
         matrix::{scaling, translation},
         spatial::Tuple,
     };
