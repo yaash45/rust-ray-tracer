@@ -233,7 +233,7 @@ mod tests {
         let red = Color::new(1, 0, 0);
         let mut canvas = Canvas::new(w, h);
 
-        canvas.write_pixel(2, 3, red.clone())?;
+        canvas.write_pixel(2, 3, red)?;
         assert_eq!(canvas.pixel_at(2, 3)?, &red);
         Ok(())
     }

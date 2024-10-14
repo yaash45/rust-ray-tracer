@@ -228,6 +228,14 @@ impl ops::Div<f64> for &Tuple {
     }
 }
 
+impl ops::Neg for Tuple {
+    type Output = Tuple;
+
+    fn neg(self) -> Self::Output {
+        Tuple::new(-self.x, -self.y, -self.z, self.w)
+    }
+}
+
 impl<T, U, G, N> From<(T, U, G, N)> for Tuple
 where
     T: Into<f64>,
