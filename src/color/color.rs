@@ -2,7 +2,7 @@ use crate::utils::float_equals;
 use std::fmt::Display;
 use std::ops;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialOrd)]
 /// Representation of colors using RGB values
 pub struct Color {
     pub red: f64,

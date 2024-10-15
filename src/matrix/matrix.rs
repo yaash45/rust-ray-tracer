@@ -6,7 +6,7 @@ use std::{
 
 use crate::{spatial::Tuple, utils::float_equals};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialOrd)]
 /// Representation of a Matrix of dimension `M x N`
 /// containing [f64] values
 ///

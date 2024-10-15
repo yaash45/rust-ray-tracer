@@ -15,7 +15,14 @@ pub mod matrix;
 /// with various types of objects
 pub mod intersections;
 
+/// Contains the implementation of point lights, materials, and the
+/// Phong reflection model to simulate the interaction of light with
+/// objects
 pub mod lights;
+
+/// Contains representation of the world that contains lights
+/// and objects
+pub mod world;
 
 /// The `spatial` module contains the representation for key
 /// three-dimensional spatial properties like Points and Vectors

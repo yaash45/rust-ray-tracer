@@ -3,7 +3,7 @@ use std::f64::consts::PI;
 use anyhow::Result;
 use raytracer::canvas::Canvas;
 use raytracer::color::Color;
-use raytracer::intersections::{hit, Ray, Sphere, SurfaceNormal};
+use raytracer::intersections::{hit, Ray, Sphere};
 use raytracer::lights::{lighting, PointLight};
 use raytracer::matrix::{rotation_z, scaling, translation};
 use raytracer::spatial::Tuple;
