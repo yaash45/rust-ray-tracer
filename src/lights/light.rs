@@ -3,7 +3,7 @@ use anyhow::{Error, Result};
 
 use super::Material;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 /// Data structure representing a light source. A light source
 /// has a position in space, and a specific color
 pub struct PointLight {

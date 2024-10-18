@@ -2,7 +2,7 @@ use typed_floats::tf64::Positive;
 
 use crate::{color::Color, utils::float_equals};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialOrd)]
 /// Data structure capturing attributes such as surface color,
 /// shininess, diffusion, specular, and ambience. These materials
 /// are then associated with objects to give them these properties.

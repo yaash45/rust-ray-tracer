@@ -16,13 +16,41 @@ pub trait SurfaceNormal {
     fn normal_at(&self, point: Tuple) -> Result<Tuple>;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+/// Trait that can be used to implement an intersection
+/// calculation for any objects that implement it
+pub trait Intersect {
+    /// Calculates the points of intersection for given [Ray] with
+    /// the object implementing this trait.
+    ///
+    /// If there are no points of intersection, an empty vector will
+    /// be returned. If there is a tangential intersection, the same
+    /// point will be returned twice.
+    fn intersect(&self, ray: &Ray) -> Result<Vec<Intersection>>;
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 /// Stores all the variants of the Object type
 pub enum Object {
     Sphere(Sphere),
 }
 
-#[derive(Debug, Clone, Copy)]
+impl Object {
+    /// Get the material of the Object
+    pub fn get_material(&self) -> Material {
+        match self {
+            Object::Sphere(ref sphere) => sphere.material,
+        }
+    }
+
+    /// Set the ambeint value for the material of this Object
+    pub fn set_ambient(&mut self, ambient: f64) {
+        match self {
+            Object::Sphere(sphere) => sphere.material.set_ambient(ambient),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialOrd)]
 /// Representation of a unit sphere centred at (0,0,0)
 pub struct Sphere {
     /// Added this field so that no two invocations of the
@@ -39,8 +67,8 @@ impl Sphere {
         Self::default()
     }
 
-    /// Calculates the `t` values for the points of intersection of
-    /// a given [Ray] with this [Sphere].
+    /// Calculates the points of intersection for given [Ray] with
+    /// the Sphere.
     ///
     /// If there are no points of intersection, an empty vector will
     /// be returned. If there is a tangential intersection, the same
@@ -72,12 +100,19 @@ impl Sphere {
         }
     }
 
-    /// Modify the transform of a sphere
+    pub fn normal_at(&self, point: Tuple) -> Result<Tuple> {
+        let object_point = &(inverse_4x4(&self.transform_matrix)?) * &point;
+        let object_normal = &object_point - &Tuple::point(0, 0, 0);
+        let world_normal = &(inverse_4x4(&self.transform_matrix)?.transpose()) * &object_normal;
+        Ok(world_normal.convert_to_vector().normalize())
+    }
+
+    /// Modify the transform of the sphere
     pub fn set_transform(&mut self, t: Matrix<4, 4>) {
         self.transform_matrix = t;
     }
 
-    /// Set the material for a sphere
+    /// Set the material for the sphere
     pub fn set_material(&mut self, m: Material) {
         self.material = m;
     }
@@ -88,7 +123,7 @@ impl Default for Sphere {
         Self {
             _id: Uuid::new_v4(),
             transform_matrix: Matrix::<4, 4>::identity(),
-            material: Material::new(),
+            material: Material::default(),
         }
     }
 }
@@ -99,12 +134,19 @@ impl PartialEq for Sphere {
     }
 }
 
-impl SurfaceNormal for Sphere {
+impl SurfaceNormal for Object {
     fn normal_at(&self, point: Tuple) -> Result<Tuple> {
-        let object_point = &(inverse_4x4(&self.transform_matrix)?) * &point;
-        let object_normal = &object_point - &Tuple::point(0, 0, 0);
-        let world_normal = &(inverse_4x4(&self.transform_matrix)?.transpose()) * &object_normal;
-        Ok(world_normal.convert_to_vector().normalize())
+        match self {
+            Object::Sphere(ref sphere) => sphere.normal_at(point),
+        }
+    }
+}
+
+impl Intersect for Object {
+    fn intersect(&self, ray: &Ray) -> Result<Vec<Intersection>> {
+        match self {
+            Object::Sphere(ref sphere) => sphere.intersect(ray),
+        }
     }
 }
 
@@ -112,7 +154,7 @@ impl SurfaceNormal for Sphere {
 mod tests {
     use std::f64::consts::{FRAC_1_SQRT_2, PI, SQRT_2};
 
-    use super::{Intersection, Object, Ray, Sphere, SurfaceNormal};
+    use super::{Intersection, Object, Ray, Sphere};
     use crate::{
         color::Color,
         lights::Material,
