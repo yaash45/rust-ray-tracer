@@ -1,4 +1,4 @@
-use crate::matrix::Matrix;
+use crate::{matrix::Matrix, spatial::Tuple};
 
 /// Gets a 4x4 transformation matrix that can be used to translate tuples in 3D space
 ///
@@ -91,12 +91,39 @@ pub fn shearing(
     ])
 }
 
+/// Gets a view transform to for the eye vector based on the provided
+/// from, to, and up Tuples for the world
+pub fn view_transform(from: &Tuple, to: &Tuple, up: &Tuple) -> Matrix<4, 4> {
+    let forward = (to - from).normalize();
+    let upn = up.normalize();
+    let left = forward.cross(&upn);
+    let true_up = left.cross(&forward);
+
+    let orientation = Matrix::from([
+        [left.get_x(), left.get_y(), left.get_z(), 0.0],
+        [true_up.get_x(), true_up.get_y(), true_up.get_z(), 0.0],
+        [-forward.get_x(), -forward.get_y(), -forward.get_z(), 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ]);
+
+    let translation_transform = translation(-from.get_x(), -from.get_y(), -from.get_z());
+
+    let view_transform_result = &orientation * &translation_transform;
+
+    // Just returning a identity matrix if multiplication went wrong (it _probably_ won't)
+    match view_transform_result {
+        Ok(vt) => vt,
+        Err(_) => Matrix::<4, 4>::identity(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::f64::consts::PI;
 
     use super::{rotation_x, rotation_y, rotation_z, scaling, shearing, translation};
-    use crate::matrix::inverse_4x4;
+    use crate::matrix::transformations::view_transform;
+    use crate::matrix::{inverse_4x4, Matrix};
     use crate::spatial::Tuple;
     use anyhow::Result;
 
@@ -261,5 +288,50 @@ mod tests {
         assert_eq!(&chained_transform * &p, result_translate);
 
         Ok(())
+    }
+
+    #[test]
+    fn default_orientation_view_transform() {
+        let from = Tuple::point(0, 0, 0);
+        let to = Tuple::point(0, 0, -1);
+        let up = Tuple::vector(0, 1, 0);
+
+        assert_eq!(view_transform(&from, &to, &up), Matrix::<4, 4>::identity());
+    }
+
+    #[test]
+    fn view_transformation_looking_in_positive_z_direction() {
+        let from = Tuple::point(0, 0, 0);
+        let to = Tuple::point(0, 0, 1);
+        let up = Tuple::vector(0, 1, 0);
+
+        assert_eq!(view_transform(&from, &to, &up), scaling(-1, 1, -1));
+    }
+
+    #[test]
+    fn view_transformation_moves_the_world() {
+        let from = Tuple::point(0, 0, 8);
+        let to = Tuple::point(0, 0, 0);
+        let up = Tuple::vector(0, 1, 0);
+
+        assert_eq!(view_transform(&from, &to, &up), translation(0, 0, -8));
+    }
+
+    #[test]
+    fn arbitrary_view_transformation() {
+        let from = Tuple::point(1, 3, 2);
+        let to = Tuple::point(4, -2, 8);
+        let up = Tuple::vector(1, 1, 0);
+
+        let expected = Matrix::from([
+            [-0.50709, 0.50709, 0.67612, -2.36643],
+            [0.767715, 0.60609, 0.121218, -2.82843],
+            [-0.35856, 0.59761, -0.71714, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+
+        let actual = view_transform(&from, &to, &up);
+
+        assert_eq!(actual, expected);
     }
 }
