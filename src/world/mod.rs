@@ -16,8 +16,13 @@ pub struct World {
 }
 
 impl World {
-    /// Creates a new empty world
+    /// Creates a new default world
     pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Creates a new empty world
+    pub fn empty() -> Self {
         Self {
             light: None,
             objects: vec![],
@@ -113,7 +118,7 @@ mod test {
 
     #[test]
     fn new_world_is_empty() {
-        let w = World::new();
+        let w = World::empty();
         assert_eq!(w.get_light(), None);
         assert_eq!(w.objects.len(), 0);
     }
