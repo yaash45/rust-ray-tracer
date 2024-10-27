@@ -1,3 +1,7 @@
+/// Contains the implementation of our camera that captures scenes from
+/// the world
+pub mod camera;
+
 /// Contains the main canvas that we represent our coloured pixels on.
 /// It also contains the functionality to export the canvas into a
 /// familiar image format (PPM)
