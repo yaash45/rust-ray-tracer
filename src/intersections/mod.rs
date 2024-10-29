@@ -100,7 +100,7 @@ mod tests {
     #[test]
     fn precomputing_state_of_intersection_when_it_is_outside() -> Result<()> {
         let ray = Ray::new(Tuple::point(0, 0, -5), Tuple::vector(0, 0, 1))?;
-        let sphere = Sphere::new();
+        let sphere = Sphere::default();
         let intersection = Intersection::new(4, Object::Sphere(sphere));
 
         let comps = Computations::prepare_computations(&intersection, &ray)?;
@@ -118,7 +118,7 @@ mod tests {
     #[test]
     fn precomputing_state_of_intersection_when_it_is_inside() -> Result<()> {
         let ray = Ray::new(Tuple::point(0, 0, 0), Tuple::vector(0, 0, 1))?;
-        let sphere = Sphere::new();
+        let sphere = Sphere::default();
         let intersection = Intersection::new(1, Object::Sphere(sphere));
 
         let comps = Computations::prepare_computations(&intersection, &ray)?;

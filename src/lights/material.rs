@@ -16,8 +16,14 @@ pub struct Material {
 
 impl Material {
     /// Create a new instance of the default material
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(color: Color, ambient: f64, diffuse: f64, specular: f64, shininess: f64) -> Self {
+        Self {
+            color,
+            ambient: Positive::new(ambient).unwrap(),
+            diffuse: Positive::new(diffuse).unwrap(),
+            specular: Positive::new(specular).unwrap(),
+            shininess: Positive::new(shininess).unwrap(),
+        }
     }
 
     /// Get the color of the material
@@ -100,7 +106,7 @@ mod test {
 
     #[test]
     fn create_default_material() {
-        let m = Material::new();
+        let m = Material::default();
 
         assert_eq!(m.get_color(), Color::new(1, 1, 1));
         assert_eq!(m.get_ambient(), 0.1);

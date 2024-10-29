@@ -63,8 +63,12 @@ pub struct Sphere {
 
 impl Sphere {
     /// Create a new [Sphere]
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(transform: Matrix<4, 4>, material: Material) -> Self {
+        Self {
+            _id: Uuid::new_v4(),
+            transform_matrix: transform,
+            material,
+        }
     }
 
     /// Calculates the points of intersection for given [Ray] with
@@ -165,13 +169,13 @@ mod tests {
 
     #[test]
     fn create_a_default_sphere() {
-        let s = Sphere::new();
+        let s = Sphere::default();
         assert_eq!(s.transform_matrix, Matrix::<4, 4>::identity());
     }
 
     #[test]
     fn changing_a_spheres_transformation() {
-        let mut s = Sphere::new();
+        let mut s = Sphere::default();
         assert_eq!(s.transform_matrix, Matrix::<4, 4>::identity());
 
         let t = translation(2, 3, 4);
@@ -182,7 +186,7 @@ mod tests {
     #[test]
     fn ray_intersects_sphere_at_two_points() -> Result<()> {
         let ray = Ray::new(Tuple::point(0, 0, -5), Tuple::vector(0, 0, 1))?;
-        let s = Sphere::new();
+        let s = Sphere::default();
 
         let xs = s.intersect(&ray)?;
         assert_eq!(xs.len(), 2);
@@ -196,7 +200,7 @@ mod tests {
     #[test]
     fn ray_intersects_sphere_at_tangent() -> Result<()> {
         let ray = Ray::new(Tuple::point(0, 1, -5), Tuple::vector(0, 0, 1))?;
-        let s = Sphere::new();
+        let s = Sphere::default();
 
         let xs = s.intersect(&ray)?;
         assert_eq!(xs.len(), 2);
@@ -210,7 +214,7 @@ mod tests {
     #[test]
     fn ray_misses_a_sphere() -> Result<()> {
         let ray = Ray::new(Tuple::point(0, 2, -5), Tuple::vector(0, 0, 1))?;
-        let s = Sphere::new();
+        let s = Sphere::default();
 
         let xs = s.intersect(&ray)?;
         assert_eq!(xs.len(), 0);
@@ -220,7 +224,7 @@ mod tests {
     #[test]
     fn ray_originates_inside_sphere() -> Result<()> {
         let ray = Ray::new(Tuple::point(0, 0, 0), Tuple::vector(0, 0, 1))?;
-        let s = Sphere::new();
+        let s = Sphere::default();
 
         let xs = s.intersect(&ray)?;
         assert_eq!(xs.len(), 2);
@@ -234,7 +238,7 @@ mod tests {
     #[test]
     fn sphere_is_behind_a_ray() -> Result<()> {
         let ray = Ray::new(Tuple::point(0, 0, 5), Tuple::vector(0, 0, 1))?;
-        let s = Sphere::new();
+        let s = Sphere::default();
 
         let xs = s.intersect(&ray)?;
         assert_eq!(xs.len(), 2);
@@ -247,7 +251,7 @@ mod tests {
 
     #[test]
     fn creating_intersection_works() {
-        let s = Sphere::new();
+        let s = Sphere::default();
         let t = 3.5;
         let i = Intersection::new(t, Object::Sphere(s));
         assert_eq!(i.t, t);
@@ -257,7 +261,7 @@ mod tests {
     #[test]
     fn intersecting_a_scaled_sphere_with_a_ray() -> Result<()> {
         let r = Ray::new(Tuple::point(0, 0, -5), Tuple::vector(0, 0, 1))?;
-        let mut s = Sphere::new();
+        let mut s = Sphere::default();
 
         s.set_transform(scaling(2, 2, 2));
         let xs = s.intersect(&r)?;
@@ -272,7 +276,7 @@ mod tests {
     #[test]
     fn intersecting_a_translated_sphere_with_a_ray() -> Result<()> {
         let r = Ray::new(Tuple::point(0, 0, -5), Tuple::vector(0, 0, 1))?;
-        let mut s = Sphere::new();
+        let mut s = Sphere::default();
 
         s.set_transform(translation(5, 0, 0));
         let xs = s.intersect(&r)?;
@@ -284,7 +288,7 @@ mod tests {
 
     #[test]
     fn surface_normal_for_sphere() -> Result<()> {
-        let mut s = Sphere::new();
+        let mut s = Sphere::default();
 
         // test some basic surface normals out for a unit sphere
         assert_eq!(s.normal_at(Tuple::point(1, 0, 0))?, Tuple::vector(1, 0, 0));
@@ -328,14 +332,14 @@ mod tests {
 
     #[test]
     fn sphere_starts_with_default_material() {
-        let s = Sphere::new();
-        assert_eq!(s.material, Material::new());
+        let s = Sphere::default();
+        assert_eq!(s.material, Material::default());
     }
 
     #[test]
     fn sphere_material_can_be_set() {
-        let mut s = Sphere::new();
-        let mut m = Material::new();
+        let mut s = Sphere::default();
+        let mut m = Material::default();
 
         m.set_color(Color::green());
         m.set_ambient(0.5);
