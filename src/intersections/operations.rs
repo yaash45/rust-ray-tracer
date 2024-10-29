@@ -52,7 +52,7 @@ mod tests {
 
     #[test]
     fn hits_when_all_intersections_have_positive_t() -> Result<()> {
-        let s = Sphere::new();
+        let s = Sphere::default();
         let i1 = Intersection::new(1, Object::Sphere(s));
         let i2 = Intersection::new(2, Object::Sphere(s));
 
@@ -62,7 +62,7 @@ mod tests {
 
     #[test]
     fn hits_when_some_intersections_have_negative_t() -> Result<()> {
-        let s = Sphere::new();
+        let s = Sphere::default();
         let i1 = Intersection::new(-1, Object::Sphere(s));
         let i2 = Intersection::new(1, Object::Sphere(s));
 
@@ -73,7 +73,7 @@ mod tests {
 
     #[test]
     fn hits_when_all_intersections_have_negative_t() -> Result<()> {
-        let s = Sphere::new();
+        let s = Sphere::default();
         let i1 = Intersection::new(-2, Object::Sphere(s));
         let i2 = Intersection::new(-1, Object::Sphere(s));
 
@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn hit_is_always_lowest_non_negative_intersection() -> Result<()> {
-        let s = Sphere::new();
+        let s = Sphere::default();
         let i1 = Intersection::new(5, Object::Sphere(s));
         let i2 = Intersection::new(7, Object::Sphere(s));
         let i3 = Intersection::new(-3, Object::Sphere(s));

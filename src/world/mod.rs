@@ -39,6 +39,16 @@ impl World {
         self.light = light;
     }
 
+    /// Add an object to the world
+    pub fn add_object(&mut self, obj: Object) {
+        self.objects.push(obj);
+    }
+
+    /// Get a count of number of objects in the world
+    pub fn object_count(&self) -> usize {
+        self.objects.len()
+    }
+
     /// Finds and returns all the intersections of the given ray
     /// with the world
     fn intersect_world(&self, ray: &Ray) -> Result<Vec<Intersection>> {
@@ -90,12 +100,12 @@ impl Default for World {
         let light_source =
             PointLight::new(Tuple::point(-10, 10, -10), Color::new(1, 1, 1)).unwrap();
 
-        let mut s1 = Sphere::new();
+        let mut s1 = Sphere::default();
         s1.material.set_color(Color::new(0.8, 1.0, 0.6));
         s1.material.set_diffuse(0.7);
         s1.material.set_specular(0.2);
 
-        let mut s2 = Sphere::new();
+        let mut s2 = Sphere::default();
         s2.set_transform(scaling(0.5, 0.5, 0.5));
 
         Self {
@@ -120,7 +130,7 @@ mod test {
     fn new_world_is_empty() {
         let w = World::empty();
         assert_eq!(w.get_light(), None);
-        assert_eq!(w.objects.len(), 0);
+        assert_eq!(w.object_count(), 0);
     }
 
     #[test]
@@ -128,7 +138,7 @@ mod test {
         let w = World::default();
 
         assert!(w.get_light().is_some());
-        assert_eq!(w.objects.len(), 2);
+        assert_eq!(w.object_count(), 2);
     }
 
     #[test]
@@ -153,7 +163,7 @@ mod test {
         let r = Ray::new(Tuple::point(0, 0, -5), Tuple::vector(0, 0, 1))?;
 
         // Ensure that we have two objects in our world
-        assert_eq!(w.objects.len(), 2);
+        assert_eq!(w.object_count(), 2);
         let i = Intersection::new(4, w.objects[0]);
         let comps = Computations::prepare_computations(&i, &r)?;
 
@@ -175,7 +185,7 @@ mod test {
         let r = Ray::new(Tuple::point(0, 0, 0), Tuple::vector(0, 0, 1))?;
 
         // Ensure that we have two objects in our world
-        assert_eq!(w.objects.len(), 2);
+        assert_eq!(w.object_count(), 2);
         let i = Intersection::new(0.5, w.objects[1]);
         let comps = Computations::prepare_computations(&i, &r)?;
 

@@ -87,7 +87,7 @@ mod tests {
 
     #[test]
     fn lighting_with_eye_between_light_and_surface() -> Result<()> {
-        let m = Material::new();
+        let m = Material::default();
         let position = Tuple::point(0, 0, 0);
 
         let eyev = Tuple::vector(0, 0, -1);
@@ -104,7 +104,7 @@ mod tests {
 
     #[test]
     fn light_between_source_and_surface_offset_45_degrees() -> Result<()> {
-        let m = Material::new();
+        let m = Material::default();
         let position = Tuple::point(0, 0, 0);
 
         let eyev = Tuple::vector(0, SQRT_2 / 2.0, -SQRT_2 / 2.0);
@@ -121,7 +121,7 @@ mod tests {
 
     #[test]
     fn eye_opposite_surface_light_source_offset_45_degrees() -> Result<()> {
-        let m = Material::new();
+        let m = Material::default();
         let position = Tuple::point(0, 0, 0);
 
         let eyev = Tuple::vector(0, 0, -1);
@@ -138,7 +138,7 @@ mod tests {
 
     #[test]
     fn light_with_eye_in_path_of_reflection_vector() -> Result<()> {
-        let m = Material::new();
+        let m = Material::default();
         let position = Tuple::point(0, 0, 0);
 
         let eyev = Tuple::vector(0, -SQRT_2 / 2.0, -SQRT_2 / 2.0);
@@ -155,7 +155,7 @@ mod tests {
 
     #[test]
     fn light_behind_surface() -> Result<()> {
-        let m = Material::new();
+        let m = Material::default();
         let position = Tuple::point(0, 0, 0);
 
         let eyev = Tuple::vector(0, 0, -1);
