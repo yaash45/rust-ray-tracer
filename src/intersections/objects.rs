@@ -161,9 +161,11 @@ mod tests {
     use super::{Intersection, Object, Ray, Sphere};
     use crate::{
         color::Color,
+        intersections::Computations,
         lights::Material,
         matrix::{rotation_z, scaling, translation, Matrix},
         spatial::Tuple,
+        utils::EPSILON,
     };
     use anyhow::Result;
 
@@ -347,5 +349,20 @@ mod tests {
         s.set_material(m);
         assert_eq!(s.material.get_color(), Color::green());
         assert_eq!(s.material.get_ambient(), 0.5);
+    }
+
+    #[test]
+    fn the_hit_should_offset_the_point() -> Result<()> {
+        let r = Ray::new(Tuple::point(0, 0, -5), Tuple::vector(0, 0, 1))?;
+        let mut shape = Sphere::default();
+        shape.set_transform(translation(0, 0, 1));
+
+        let i = Intersection::new(5, Object::Sphere(shape));
+        let comps = Computations::prepare_computations(&i, &r)?;
+
+        assert!(comps.get_over_point().get_z() < -EPSILON / 2.0);
+        assert!(comps.get_point().get_z() > comps.get_over_point().get_z());
+
+        Ok(())
     }
 }

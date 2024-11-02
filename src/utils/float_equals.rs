@@ -1,4 +1,4 @@
-const EPSILON: f64 = 0.00001;
+pub const EPSILON: f64 = 0.00001;
 
 /// Helper function to properly compare the equality
 /// of two 64-bit precision floating point numbers.

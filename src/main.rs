@@ -151,7 +151,7 @@ fn cast_rays_on_sphere_3d() -> Result<()> {
                 let point = ray.position(cur_hit.unwrap().t);
                 let normal = s.normal_at(point)?;
                 let eye = -ray.direction;
-                let color = lighting(&s.material, &light, &point, &eye, &normal);
+                let color = lighting(&s.material, &light, &point, &eye, &normal, false); // placeholder until shadows are accounted for
 
                 canvas.write_pixel(x, y, color)?;
             }
