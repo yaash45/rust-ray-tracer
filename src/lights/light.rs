@@ -45,11 +45,16 @@ pub fn lighting(
     // combine surface color with the light's intensity/color
     let effective_color = material.get_color() * point_light.intensity;
 
-    // find the direction to the light source
-    let lightv = (&point_light.position - position).normalize();
-
     // compute ambient contribution
     let ambient = effective_color * material.get_ambient();
+
+    // if we're in a shadow, we can ignore the diffuse and specular components
+    if in_shadow {
+        return ambient;
+    }
+
+    // find the direction to the light source
+    let lightv = (&point_light.position - position).normalize();
 
     // light_dot_normal represents the cosine of the angle between the​
     // light vector and the normal vector. A negative number means the​
@@ -73,10 +78,6 @@ pub fn lighting(
             let factor = reflect_dot_eye.powf(material.get_shininess());
             specular = point_light.intensity * material.get_specular() * factor;
         }
-    }
-
-    if in_shadow {
-        return ambient;
     }
 
     ambient + diffuse + specular
