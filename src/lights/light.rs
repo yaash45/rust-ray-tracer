@@ -8,7 +8,7 @@ use super::Material;
 /// has a position in space, and a specific color
 pub struct PointLight {
     intensity: Color,
-    position: Tuple,
+    pub(crate) position: Tuple,
 }
 
 impl PointLight {
@@ -40,15 +40,21 @@ pub fn lighting(
     position: &Tuple,
     eyev: &Tuple,
     normalv: &Tuple,
+    in_shadow: bool,
 ) -> Color {
     // combine surface color with the light's intensity/color
     let effective_color = material.get_color() * point_light.intensity;
 
-    // find the direction to the light source
-    let lightv = (&point_light.position - position).normalize();
-
     // compute ambient contribution
     let ambient = effective_color * material.get_ambient();
+
+    // if we're in a shadow, we can ignore the diffuse and specular components
+    if in_shadow {
+        return ambient;
+    }
+
+    // find the direction to the light source
+    let lightv = (&point_light.position - position).normalize();
 
     // light_dot_normal represents the cosine of the angle between the​
     // light vector and the normal vector. A negative number means the​
@@ -93,8 +99,9 @@ mod tests {
         let eyev = Tuple::vector(0, 0, -1);
         let normal = Tuple::vector(0, 0, -1);
         let point_light = PointLight::new(Tuple::point(0, 0, -10), Color::new(1, 1, 1))?;
+        let in_shadow = false;
 
-        let result = lighting(&m, &point_light, &position, &eyev, &normal);
+        let result = lighting(&m, &point_light, &position, &eyev, &normal, in_shadow);
         let expected = Color::new(1.9, 1.9, 1.9);
 
         assert_eq!(result, expected);
@@ -110,8 +117,9 @@ mod tests {
         let eyev = Tuple::vector(0, SQRT_2 / 2.0, -SQRT_2 / 2.0);
         let normal = Tuple::vector(0, 0, -1);
         let point_light = PointLight::new(Tuple::point(0, 0, -10), Color::new(1, 1, 1))?;
+        let in_shadow = false;
 
-        let result = lighting(&m, &point_light, &position, &eyev, &normal);
+        let result = lighting(&m, &point_light, &position, &eyev, &normal, in_shadow);
         let expected = Color::new(1, 1, 1);
 
         assert_eq!(result, expected);
@@ -127,8 +135,9 @@ mod tests {
         let eyev = Tuple::vector(0, 0, -1);
         let normal = Tuple::vector(0, 0, -1);
         let point_light = PointLight::new(Tuple::point(0, 10, -10), Color::new(1, 1, 1))?;
+        let in_shadow = false;
 
-        let result = lighting(&m, &point_light, &position, &eyev, &normal);
+        let result = lighting(&m, &point_light, &position, &eyev, &normal, in_shadow);
         let expected = Color::new(0.7364, 0.7364, 0.7364);
 
         assert_eq!(result, expected);
@@ -144,8 +153,9 @@ mod tests {
         let eyev = Tuple::vector(0, -SQRT_2 / 2.0, -SQRT_2 / 2.0);
         let normal = Tuple::vector(0, 0, -1);
         let point_light = PointLight::new(Tuple::point(0, 10, -10), Color::new(1, 1, 1))?;
+        let in_shadow = false;
 
-        let result = lighting(&m, &point_light, &position, &eyev, &normal);
+        let result = lighting(&m, &point_light, &position, &eyev, &normal, in_shadow);
         let expected = Color::new(1.6364, 1.6364, 1.6364);
 
         assert_eq!(result, expected);
@@ -161,8 +171,27 @@ mod tests {
         let eyev = Tuple::vector(0, 0, -1);
         let normal = Tuple::vector(0, 0, -1);
         let point_light = PointLight::new(Tuple::point(0, 0, 10), Color::new(1, 1, 1))?;
+        let in_shadow = false;
 
-        let result = lighting(&m, &point_light, &position, &eyev, &normal);
+        let result = lighting(&m, &point_light, &position, &eyev, &normal, in_shadow);
+        let expected = Color::new(0.1, 0.1, 0.1);
+
+        assert_eq!(result, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn lighting_with_surface_in_shadow() -> Result<()> {
+        let m = Material::default();
+        let position = Tuple::point(0, 0, 0);
+
+        let eyev = Tuple::vector(0, 0, -1);
+        let normal = Tuple::vector(0, 0, -1);
+        let point_light = PointLight::new(Tuple::point(0, 0, -10), Color::new(1, 1, 1))?;
+        let in_shadow = true;
+
+        let result = lighting(&m, &point_light, &position, &eyev, &normal, in_shadow);
         let expected = Color::new(0.1, 0.1, 0.1);
 
         assert_eq!(result, expected);

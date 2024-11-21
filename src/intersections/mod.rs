@@ -6,7 +6,7 @@ pub use objects::{Intersect, Object, Sphere, SurfaceNormal};
 pub use operations::{hit, reflect, transform_ray};
 pub use ray::Ray;
 
-use crate::spatial::Tuple;
+use crate::{spatial::Tuple, utils::EPSILON};
 use anyhow::Result;
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
@@ -37,6 +37,7 @@ pub struct Computations {
     eyev: Tuple,
     normalv: Tuple,
     inside: bool,
+    over_point: Tuple,
 }
 
 impl Computations {
@@ -60,6 +61,15 @@ impl Computations {
         &self.normalv
     }
 
+    /// Get the over point value for the computation
+    ///
+    /// This over point sits just a bit above the surface and is used
+    /// to correct for the margin of error that arises from floating
+    /// point calculations of ray intersections.
+    pub fn get_over_point(&self) -> &Tuple {
+        &self.over_point
+    }
+
     /// Builds a state of the world based on the given intersection and ray
     /// values. This computation is performed to make some commonly accessed
     /// state values easily accessible in other computations.
@@ -79,6 +89,8 @@ impl Computations {
             normalv = -normalv;
         }
 
+        let over_point = point + (&normalv * EPSILON);
+
         Ok(Self {
             t,
             object,
@@ -86,6 +98,7 @@ impl Computations {
             eyev,
             normalv,
             inside,
+            over_point,
         })
     }
 }

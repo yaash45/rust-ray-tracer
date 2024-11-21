@@ -49,6 +49,26 @@ impl World {
         self.objects.len()
     }
 
+    /// Determines if a point in the world is shadowed or not
+    pub fn is_shadowed(&self, point: &Tuple) -> Result<bool> {
+        if self.light.is_none() {
+            return Ok(false);
+        }
+
+        let v = &self.light.unwrap().position - point;
+        let distance = v.magnitude();
+        let direction = v.normalize();
+
+        let r = Ray::new(*point, direction)?;
+        let h = hit(self.intersect_world(&r)?);
+
+        if let Some(h) = h {
+            Ok(h.t < distance)
+        } else {
+            Ok(false)
+        }
+    }
+
     /// Finds and returns all the intersections of the given ray
     /// with the world
     fn intersect_world(&self, ray: &Ray) -> Result<Vec<Intersection>> {
@@ -65,18 +85,19 @@ impl World {
 
     /// Given a set of pre-computed state values of the world,
     /// calculate the color of a hit in the world
-    fn shade_hit(&self, comps: &Computations) -> Color {
+    fn shade_hit(&self, comps: &Computations) -> Result<Color> {
         if self.light.is_none() {
-            return Color::black();
+            return Ok(Color::black());
         }
 
-        lighting(
+        Ok(lighting(
             &comps.get_object().get_material(),
             self.light.as_ref().unwrap(),
             comps.get_point(),
             comps.get_eyev(),
             comps.get_normalv(),
-        )
+            self.is_shadowed(comps.get_over_point())?, // placeholder until shadows are accounted for
+        ))
     }
 
     /// This method calculates all the intersections of a given ray
@@ -91,7 +112,7 @@ impl World {
         }
 
         let comps = Computations::prepare_computations(h.as_ref().unwrap(), ray)?;
-        Ok(self.shade_hit(&comps))
+        self.shade_hit(&comps)
     }
 }
 
@@ -120,8 +141,9 @@ mod test {
     use super::World;
     use crate::{
         color::Color,
-        intersections::{Computations, Intersection, Ray},
+        intersections::{Computations, Intersection, Object, Ray, Sphere},
         lights::PointLight,
+        matrix::translation,
         spatial::Tuple,
     };
     use anyhow::Result;
@@ -167,7 +189,7 @@ mod test {
         let i = Intersection::new(4, w.objects[0]);
         let comps = Computations::prepare_computations(&i, &r)?;
 
-        let c = w.shade_hit(&comps);
+        let c = w.shade_hit(&comps)?;
 
         assert_eq!(c, Color::new(0.38066, 0.47583, 0.2855));
 
@@ -189,7 +211,7 @@ mod test {
         let i = Intersection::new(0.5, w.objects[1]);
         let comps = Computations::prepare_computations(&i, &r)?;
 
-        let c = w.shade_hit(&comps);
+        let c = w.shade_hit(&comps)?;
 
         assert_eq!(c, Color::new(0.90498, 0.90498, 0.90498));
 
@@ -223,6 +245,53 @@ mod test {
         let r = Ray::new(Tuple::point(0, 0, 0.75), Tuple::vector(0, 0, -1))?;
         let c = w.color_at(&r)?;
         assert_eq!(c, w.objects[1].get_material().get_color());
+        Ok(())
+    }
+
+    #[test]
+    fn is_shadowed_works() -> Result<()> {
+        let w = World::default();
+
+        // There is no shadow when nothing is collinear with point and light
+        let p1 = Tuple::point(0, 10, 0);
+        assert!(!w.is_shadowed(&p1)?);
+
+        // The shadow when an object is between the point and the light
+        let p2 = Tuple::point(10, -10, 10);
+        assert!(w.is_shadowed(&p2)?);
+
+        // There is no shadow when an object is behind the light
+        let p3 = Tuple::point(-20, 20, -20);
+        assert!(!w.is_shadowed(&p3)?);
+
+        // There is no shadow when an object is behind the point
+        let p4 = Tuple::point(-2, 2, -2);
+        assert!(!w.is_shadowed(&p4)?);
+
+        Ok(())
+    }
+
+    #[test]
+    fn shade_hit_is_given_an_intersection_in_shadow() -> Result<()> {
+        let light = PointLight::new(Tuple::point(0, 0, -10), Color::new(1, 1, 1))?;
+        let mut w = World::empty();
+        w.set_light(Some(light));
+
+        let s1 = Sphere::default();
+        w.add_object(Object::Sphere(s1));
+
+        let mut s2 = Sphere::default();
+        s2.set_transform(translation(0, 0, 10));
+        w.add_object(Object::Sphere(s2));
+
+        let r = Ray::new(Tuple::point(0, 0, 5), Tuple::vector(0, 0, 1))?;
+        let i = Intersection::new(4, Object::Sphere(s2));
+
+        let comps = Computations::prepare_computations(&i, &r)?;
+        let c = w.shade_hit(&comps)?;
+
+        assert_eq!(c, Color::new(0.1, 0.1, 0.1));
+
         Ok(())
     }
 }

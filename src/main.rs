@@ -151,7 +151,7 @@ fn cast_rays_on_sphere_3d() -> Result<()> {
                 let point = ray.position(cur_hit.unwrap().t);
                 let normal = s.normal_at(point)?;
                 let eye = -ray.direction;
-                let color = lighting(&s.material, &light, &point, &eye, &normal);
+                let color = lighting(&s.material, &light, &point, &eye, &normal, false); // placeholder until shadows are accounted for
 
                 canvas.write_pixel(x, y, color)?;
             }
@@ -164,7 +164,7 @@ fn cast_rays_on_sphere_3d() -> Result<()> {
 }
 
 #[allow(dead_code)]
-fn render_a_world_chapter_7() -> Result<()> {
+fn render_a_world_chapter_7(vsize: usize, hsize: usize) -> Result<()> {
     let mut floor_material = Material::default();
     floor_material.set_color(Color::new(1, 0.9, 0.9));
     floor_material.set_specular(0.0);
@@ -215,7 +215,7 @@ fn render_a_world_chapter_7() -> Result<()> {
     world.add_object(Object::Sphere(left));
     world.add_object(Object::Sphere(right));
 
-    let mut camera = Camera::new(100, 50, PI / 3.0);
+    let mut camera = Camera::new(hsize, vsize, PI / 3.0);
     camera.set_transform(view_transform(
         &Tuple::point(0, 1.5, -5),
         &Tuple::point(0, 1, 0),
@@ -251,7 +251,7 @@ fn main() -> Result<()> {
     // cast_rays_on_sphere_3d()?;
 
     // render a world from chapter 7
-    render_a_world_chapter_7()?;
+    render_a_world_chapter_7(500, 500)?;
 
     Ok(())
 }
