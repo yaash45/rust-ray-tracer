@@ -61,6 +61,11 @@ impl Computations {
         &self.normalv
     }
 
+    /// Get the over point value for the computation
+    ///
+    /// This over point sits just a bit above the surface and is used
+    /// to correct for the margin of error that arises from floating
+    /// point calculations of ray intersections.
     pub fn get_over_point(&self) -> &Tuple {
         &self.over_point
     }
