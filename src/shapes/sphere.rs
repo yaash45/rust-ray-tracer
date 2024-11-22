@@ -1,54 +1,9 @@
-use super::{transform_ray, Intersection, Ray};
-use crate::{
-    lights::Material,
-    matrix::{inverse_4x4, Matrix},
-    spatial::Tuple,
-};
-use anyhow::Result;
+use crate::intersections::{transform_ray, Intersection, Ray};
+use crate::lights::Material;
+use crate::matrix::{inverse_4x4, Matrix};
+use crate::shapes::Shape;
+use crate::spatial::Tuple;
 use uuid::Uuid;
-
-/// Trait that can be used to implement a way to get
-/// surface normals for any objects that might implement
-/// this trait
-pub trait SurfaceNormal {
-    /// Returns a normalized surface normal vector for
-    /// any object that implements this method
-    fn normal_at(&self, point: Tuple) -> Result<Tuple>;
-}
-
-/// Trait that can be used to implement an intersection
-/// calculation for any objects that implement it
-pub trait Intersect {
-    /// Calculates the points of intersection for given [Ray] with
-    /// the object implementing this trait.
-    ///
-    /// If there are no points of intersection, an empty vector will
-    /// be returned. If there is a tangential intersection, the same
-    /// point will be returned twice.
-    fn intersect(&self, ray: &Ray) -> Result<Vec<Intersection>>;
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-/// Stores all the variants of the Object type
-pub enum Object {
-    Sphere(Sphere),
-}
-
-impl Object {
-    /// Get the material of the Object
-    pub fn get_material(&self) -> Material {
-        match self {
-            Object::Sphere(ref sphere) => sphere.material,
-        }
-    }
-
-    /// Set the ambeint value for the material of this Object
-    pub fn set_ambient(&mut self, ambient: f64) {
-        match self {
-            Object::Sphere(sphere) => sphere.material.set_ambient(ambient),
-        }
-    }
-}
 
 #[derive(Debug, Clone, Copy, PartialOrd)]
 /// Representation of a unit sphere centred at (0,0,0)
@@ -57,7 +12,7 @@ pub struct Sphere {
     /// default / new will return the same Sphere. We want
     /// to maintain uniqueness with each creation.
     _id: Uuid,
-    transform_matrix: Matrix<4, 4>,
+    pub transform_matrix: Matrix<4, 4>,
     pub material: Material,
 }
 
@@ -77,7 +32,7 @@ impl Sphere {
     /// If there are no points of intersection, an empty vector will
     /// be returned. If there is a tangential intersection, the same
     /// point will be returned twice.
-    pub fn intersect(&self, ray: &Ray) -> Result<Vec<Intersection>> {
+    pub fn intersect(&self, ray: &Ray) -> anyhow::Result<Vec<Intersection>> {
         // First we transform the ray with the inverse of the object's transformation matrix
         // so we can move/deform the ray instead of moving/deforming the object.
         //
@@ -97,14 +52,14 @@ impl Sphere {
             let t1 = (-b - discriminant.sqrt()) / (2.0 * a);
             let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
 
-            let i1 = Intersection::new(t1, Object::Sphere(*self));
-            let i2 = Intersection::new(t2, Object::Sphere(*self));
+            let i1 = Intersection::new(t1, Shape::Sphere(*self));
+            let i2 = Intersection::new(t2, Shape::Sphere(*self));
 
             Ok(vec![i1, i2])
         }
     }
 
-    pub fn normal_at(&self, point: Tuple) -> Result<Tuple> {
+    pub fn normal_at(&self, point: Tuple) -> anyhow::Result<Tuple> {
         let object_point = &(inverse_4x4(&self.transform_matrix)?) * &point;
         let object_normal = &object_point - &Tuple::point(0, 0, 0);
         let world_normal = &(inverse_4x4(&self.transform_matrix)?.transpose()) * &object_normal;
@@ -138,32 +93,16 @@ impl PartialEq for Sphere {
     }
 }
 
-impl SurfaceNormal for Object {
-    fn normal_at(&self, point: Tuple) -> Result<Tuple> {
-        match self {
-            Object::Sphere(ref sphere) => sphere.normal_at(point),
-        }
-    }
-}
-
-impl Intersect for Object {
-    fn intersect(&self, ray: &Ray) -> Result<Vec<Intersection>> {
-        match self {
-            Object::Sphere(ref sphere) => sphere.intersect(ray),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::f64::consts::{FRAC_1_SQRT_2, PI, SQRT_2};
 
-    use super::{Intersection, Object, Ray, Sphere};
     use crate::{
         color::Color,
-        intersections::Computations,
+        intersections::{Computations, Intersection, Ray},
         lights::Material,
         matrix::{rotation_z, scaling, translation, Matrix},
+        shapes::{Shape, Sphere},
         spatial::Tuple,
         utils::EPSILON,
     };
@@ -193,9 +132,9 @@ mod tests {
         let xs = s.intersect(&ray)?;
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, 4.0);
-        assert_eq!(xs[0].object, Object::Sphere(s));
+        assert_eq!(xs[0].object, Shape::Sphere(s));
         assert_eq!(xs[1].t, 6.0);
-        assert_eq!(xs[1].object, Object::Sphere(s));
+        assert_eq!(xs[1].object, Shape::Sphere(s));
         Ok(())
     }
 
@@ -207,9 +146,9 @@ mod tests {
         let xs = s.intersect(&ray)?;
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, 5.0);
-        assert_eq!(xs[0].object, Object::Sphere(s));
+        assert_eq!(xs[0].object, Shape::Sphere(s));
         assert_eq!(xs[1].t, 5.0);
-        assert_eq!(xs[1].object, Object::Sphere(s));
+        assert_eq!(xs[1].object, Shape::Sphere(s));
         Ok(())
     }
 
@@ -231,9 +170,9 @@ mod tests {
         let xs = s.intersect(&ray)?;
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, -1.0);
-        assert_eq!(xs[0].object, Object::Sphere(s));
+        assert_eq!(xs[0].object, Shape::Sphere(s));
         assert_eq!(xs[1].t, 1.0);
-        assert_eq!(xs[1].object, Object::Sphere(s));
+        assert_eq!(xs[1].object, Shape::Sphere(s));
         Ok(())
     }
 
@@ -245,9 +184,9 @@ mod tests {
         let xs = s.intersect(&ray)?;
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, -6.0);
-        assert_eq!(xs[0].object, Object::Sphere(s));
+        assert_eq!(xs[0].object, Shape::Sphere(s));
         assert_eq!(xs[1].t, -4.0);
-        assert_eq!(xs[1].object, Object::Sphere(s));
+        assert_eq!(xs[1].object, Shape::Sphere(s));
         Ok(())
     }
 
@@ -255,9 +194,9 @@ mod tests {
     fn creating_intersection_works() {
         let s = Sphere::default();
         let t = 3.5;
-        let i = Intersection::new(t, Object::Sphere(s));
+        let i = Intersection::new(t, Shape::Sphere(s));
         assert_eq!(i.t, t);
-        assert_eq!(i.object, Object::Sphere(s));
+        assert_eq!(i.object, Shape::Sphere(s));
     }
 
     #[test]
@@ -357,7 +296,7 @@ mod tests {
         let mut shape = Sphere::default();
         shape.set_transform(translation(0, 0, 1));
 
-        let i = Intersection::new(5, Object::Sphere(shape));
+        let i = Intersection::new(5, Shape::Sphere(shape));
         let comps = Computations::prepare_computations(&i, &r)?;
 
         assert!(comps.get_over_point().get_z() < -EPSILON / 2.0);

@@ -44,8 +44,9 @@ mod tests {
 
     use super::{hit, reflect, transform_ray, Intersection};
     use crate::{
-        intersections::{Object, Ray, Sphere},
+        intersections::{Ray, Shape},
         matrix::{scaling, translation},
+        shapes::Sphere,
         spatial::Tuple,
     };
     use anyhow::Result;
@@ -53,8 +54,8 @@ mod tests {
     #[test]
     fn hits_when_all_intersections_have_positive_t() -> Result<()> {
         let s = Sphere::default();
-        let i1 = Intersection::new(1, Object::Sphere(s));
-        let i2 = Intersection::new(2, Object::Sphere(s));
+        let i1 = Intersection::new(1, Shape::Sphere(s));
+        let i2 = Intersection::new(2, Shape::Sphere(s));
 
         assert_eq!(hit(vec![i2, i1]), Some(i1));
         Ok(())
@@ -63,8 +64,8 @@ mod tests {
     #[test]
     fn hits_when_some_intersections_have_negative_t() -> Result<()> {
         let s = Sphere::default();
-        let i1 = Intersection::new(-1, Object::Sphere(s));
-        let i2 = Intersection::new(1, Object::Sphere(s));
+        let i1 = Intersection::new(-1, Shape::Sphere(s));
+        let i2 = Intersection::new(1, Shape::Sphere(s));
 
         assert_eq!(hit(vec![i2, i1]), Some(i2));
 
@@ -74,8 +75,8 @@ mod tests {
     #[test]
     fn hits_when_all_intersections_have_negative_t() -> Result<()> {
         let s = Sphere::default();
-        let i1 = Intersection::new(-2, Object::Sphere(s));
-        let i2 = Intersection::new(-1, Object::Sphere(s));
+        let i1 = Intersection::new(-2, Shape::Sphere(s));
+        let i2 = Intersection::new(-1, Shape::Sphere(s));
 
         assert_eq!(hit(vec![i2, i1]), None);
         Ok(())
@@ -84,10 +85,10 @@ mod tests {
     #[test]
     fn hit_is_always_lowest_non_negative_intersection() -> Result<()> {
         let s = Sphere::default();
-        let i1 = Intersection::new(5, Object::Sphere(s));
-        let i2 = Intersection::new(7, Object::Sphere(s));
-        let i3 = Intersection::new(-3, Object::Sphere(s));
-        let i4 = Intersection::new(2, Object::Sphere(s));
+        let i1 = Intersection::new(5, Shape::Sphere(s));
+        let i2 = Intersection::new(7, Shape::Sphere(s));
+        let i3 = Intersection::new(-3, Shape::Sphere(s));
+        let i4 = Intersection::new(2, Shape::Sphere(s));
 
         assert_eq!(hit(vec![i1, i2, i3, i4]), Some(i4));
 
