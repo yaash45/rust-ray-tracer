@@ -78,3 +78,47 @@ impl Intersect for Shape {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::{Shape, Sphere};
+    use crate::lights::Material;
+    use crate::matrix::{translation, Matrix};
+
+    struct ShapeFactory {}
+
+    impl ShapeFactory {
+        /// Create a default shape to test against
+        fn test_shape() -> Shape {
+            Shape::Sphere(Sphere::default())
+        }
+    }
+
+    #[test]
+    fn shape_transformations() {
+        let mut s = ShapeFactory::test_shape();
+
+        // by default, the transform matrix of any shape must be an identity matrix
+        assert_eq!(s.get_transform(), Matrix::identity());
+
+        // the transform matrix of any shape can be set
+        let translation_matrix = translation(2, 3, 5);
+        s.set_transform(translation_matrix);
+        assert_eq!(s.get_transform(), translation_matrix);
+    }
+
+    #[test]
+    fn shape_materials() {
+        let mut s = ShapeFactory::test_shape();
+
+        // by default, the material of any shape must be the default material
+        assert_eq!(s.get_material(), Material::default());
+
+        // the material of any shape can be set
+        let mut new_material = Material::default();
+        new_material.set_ambient(0.5);
+        s.set_material(new_material);
+        assert_eq!(s.get_material(), new_material);
+    }
+}
