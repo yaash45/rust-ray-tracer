@@ -5,7 +5,7 @@ use raytracer::color::Color;
 use raytracer::intersections::{hit, Ray};
 use raytracer::lights::{lighting, Material, PointLight};
 use raytracer::matrix::{rotation_x, rotation_y, rotation_z, scaling, translation, view_transform};
-use raytracer::shapes::{Shape, Sphere};
+use raytracer::shapes::{Intersect, Shape, Sphere};
 use raytracer::spatial::Tuple;
 use raytracer::tick::{tick, Environment, Projectile};
 use raytracer::world::World;
@@ -88,7 +88,7 @@ fn cast_rays_on_sphere_2d() -> Result<()> {
     let mut canvas = Canvas::new(height, width);
 
     let mut s = Sphere::default();
-    s.set_transform((&rotation_z(PI / 4.0) * &scaling(0.5, 1, 1))?);
+    s.transform_matrix = (&rotation_z(PI / 4.0) * &scaling(0.5, 1, 1))?;
 
     for y in 0..(height - 1) {
         let world_y = half - (y as f64 * pixel_size);

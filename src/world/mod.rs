@@ -128,7 +128,7 @@ impl Default for World {
         s1.material.set_specular(0.2);
 
         let mut s2 = Sphere::default();
-        s2.set_transform(scaling(0.5, 0.5, 0.5));
+        s2.transform_matrix = scaling(0.5, 0.5, 0.5);
 
         Self {
             light: Some(light_source),
@@ -288,7 +288,7 @@ mod test {
         w.add_object(Shape::Sphere(s1));
 
         let mut s2 = Sphere::default();
-        s2.set_transform(translation(0, 0, 10));
+        s2.transform_matrix = translation(0, 0, 10);
         w.add_object(Shape::Sphere(s2));
 
         let r = Ray::new(Tuple::point(0, 0, 5), Tuple::vector(0, 0, 1))?;

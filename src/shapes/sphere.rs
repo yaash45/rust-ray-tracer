@@ -1,9 +1,14 @@
-use crate::intersections::{transform_ray, Intersection, Ray};
-use crate::lights::Material;
-use crate::matrix::{inverse_4x4, Matrix};
-use crate::shapes::Shape;
-use crate::spatial::Tuple;
-use uuid::Uuid;
+use {
+    super::{Intersect, Shape},
+    crate::{
+        intersections::{Intersection, Ray},
+        lights::Material,
+        matrix::{inverse_4x4, Matrix},
+        spatial::Tuple,
+    },
+    anyhow::Result,
+    uuid::Uuid,
+};
 
 #[derive(Debug, Clone, Copy, PartialOrd)]
 /// Representation of a unit sphere centred at (0,0,0)
@@ -26,23 +31,23 @@ impl Sphere {
         }
     }
 
-    /// Calculates the points of intersection for given [Ray] with
-    /// the Sphere.
-    ///
-    /// If there are no points of intersection, an empty vector will
-    /// be returned. If there is a tangential intersection, the same
-    /// point will be returned twice.
-    pub fn intersect(&self, ray: &Ray) -> anyhow::Result<Vec<Intersection>> {
-        // First we transform the ray with the inverse of the object's transformation matrix
-        // so we can move/deform the ray instead of moving/deforming the object.
-        //
-        // This enables us to keep the calculation simple since we can assume our unit object
-        // centered at the origin (0, 0, 0), and the ray is transformed in relation to it.
-        let transformed_ray = transform_ray(ray, &inverse_4x4(&self.transform_matrix)?)?;
+    pub fn normal_at(&self, point: Tuple) -> anyhow::Result<Tuple> {
+        let object_point = &(inverse_4x4(&self.transform_matrix)?) * &point;
+        let object_normal = &object_point - &Tuple::point(0, 0, 0);
+        let world_normal = &(inverse_4x4(&self.transform_matrix)?.transpose()) * &object_normal;
+        Ok(world_normal.convert_to_vector().normalize())
+    }
+}
 
-        let sphere_to_ray = &transformed_ray.origin - &Tuple::point(0, 0, 0);
-        let a = transformed_ray.direction.dot(&transformed_ray.direction);
-        let b = 2.0 * transformed_ray.direction.dot(&sphere_to_ray);
+impl Intersect for Sphere {
+    fn get_transform(&self) -> Matrix<4, 4> {
+        self.transform_matrix
+    }
+
+    fn local_intersect(&self, ray: &Ray) -> Result<Vec<Intersection>> {
+        let sphere_to_ray = &ray.origin - &Tuple::point(0, 0, 0);
+        let a = ray.direction.dot(&ray.direction);
+        let b = 2.0 * ray.direction.dot(&sphere_to_ray);
         let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
         let discriminant = b * b - (4.0 * a * c);
 
@@ -57,23 +62,6 @@ impl Sphere {
 
             Ok(vec![i1, i2])
         }
-    }
-
-    pub fn normal_at(&self, point: Tuple) -> anyhow::Result<Tuple> {
-        let object_point = &(inverse_4x4(&self.transform_matrix)?) * &point;
-        let object_normal = &object_point - &Tuple::point(0, 0, 0);
-        let world_normal = &(inverse_4x4(&self.transform_matrix)?.transpose()) * &object_normal;
-        Ok(world_normal.convert_to_vector().normalize())
-    }
-
-    /// Modify the transform of the sphere
-    pub fn set_transform(&mut self, t: Matrix<4, 4>) {
-        self.transform_matrix = t;
-    }
-
-    /// Set the material for the sphere
-    pub fn set_material(&mut self, m: Material) {
-        self.material = m;
     }
 }
 
@@ -98,11 +86,10 @@ mod tests {
     use std::f64::consts::{FRAC_1_SQRT_2, PI, SQRT_2};
 
     use crate::{
-        color::Color,
         intersections::{Computations, Intersection, Ray},
         lights::Material,
         matrix::{rotation_z, scaling, translation, Matrix},
-        shapes::{Shape, Sphere},
+        shapes::{Intersect, Shape, Sphere},
         spatial::Tuple,
         utils::EPSILON,
     };
@@ -112,16 +99,6 @@ mod tests {
     fn create_a_default_sphere() {
         let s = Sphere::default();
         assert_eq!(s.transform_matrix, Matrix::<4, 4>::identity());
-    }
-
-    #[test]
-    fn changing_a_spheres_transformation() {
-        let mut s = Sphere::default();
-        assert_eq!(s.transform_matrix, Matrix::<4, 4>::identity());
-
-        let t = translation(2, 3, 4);
-        s.set_transform(t);
-        assert_eq!(s.transform_matrix, t);
     }
 
     #[test]
@@ -202,9 +179,11 @@ mod tests {
     #[test]
     fn intersecting_a_scaled_sphere_with_a_ray() -> Result<()> {
         let r = Ray::new(Tuple::point(0, 0, -5), Tuple::vector(0, 0, 1))?;
-        let mut s = Sphere::default();
+        let s = Sphere {
+            transform_matrix: scaling(2, 2, 2),
+            ..Default::default()
+        };
 
-        s.set_transform(scaling(2, 2, 2));
         let xs = s.intersect(&r)?;
 
         assert_eq!(xs.len(), 2);
@@ -217,9 +196,11 @@ mod tests {
     #[test]
     fn intersecting_a_translated_sphere_with_a_ray() -> Result<()> {
         let r = Ray::new(Tuple::point(0, 0, -5), Tuple::vector(0, 0, 1))?;
-        let mut s = Sphere::default();
+        let s = Sphere {
+            transform_matrix: translation(6, 0, 0),
+            ..Default::default()
+        };
 
-        s.set_transform(translation(5, 0, 0));
         let xs = s.intersect(&r)?;
 
         assert_eq!(xs.len(), 0);
@@ -255,14 +236,14 @@ mod tests {
         assert_eq!(n, n.normalize());
 
         // the normal_at function should be able to handle transforms
-        s.set_transform(translation(0, 1, 0));
+        s.transform_matrix = translation(0, 1, 0);
         assert_eq!(
             s.normal_at(Tuple::point(0, 1.70711, -FRAC_1_SQRT_2))?,
             Tuple::vector(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2)
         );
 
         let transform = (&scaling(1, 0.5, 1) * &rotation_z(PI / 5.0))?;
-        s.set_transform(transform);
+        s.transform_matrix = transform;
         assert_eq!(
             s.normal_at(Tuple::point(0, SQRT_2 / 2.0, -SQRT_2 / 2.0))?,
             Tuple::vector(0, 0.97014, -0.24254)
@@ -278,23 +259,12 @@ mod tests {
     }
 
     #[test]
-    fn sphere_material_can_be_set() {
-        let mut s = Sphere::default();
-        let mut m = Material::default();
-
-        m.set_color(Color::green());
-        m.set_ambient(0.5);
-
-        s.set_material(m);
-        assert_eq!(s.material.get_color(), Color::green());
-        assert_eq!(s.material.get_ambient(), 0.5);
-    }
-
-    #[test]
     fn the_hit_should_offset_the_point() -> Result<()> {
         let r = Ray::new(Tuple::point(0, 0, -5), Tuple::vector(0, 0, 1))?;
-        let mut shape = Sphere::default();
-        shape.set_transform(translation(0, 0, 1));
+        let shape = Sphere {
+            transform_matrix: translation(1, 0, 1),
+            ..Default::default()
+        };
 
         let i = Intersection::new(5, Shape::Sphere(shape));
         let comps = Computations::prepare_computations(&i, &r)?;

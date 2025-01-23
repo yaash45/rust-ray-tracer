@@ -1,11 +1,16 @@
 mod sphere;
 
-use crate::intersections::{Intersection, Ray};
-use crate::lights::Material;
-use crate::spatial::Tuple;
-
-use crate::matrix::Matrix;
 pub use sphere::Sphere;
+
+use {
+    crate::{
+        intersections::{transform_ray, Intersection, Ray},
+        lights::Material,
+        matrix::{inverse_4x4, Matrix},
+        spatial::Tuple,
+    },
+    anyhow::Result,
+};
 
 /// Trait that can be used to implement a way to get
 /// surface normals for any Shapes that might implement
@@ -13,7 +18,7 @@ pub use sphere::Sphere;
 pub trait SurfaceNormal {
     /// Returns a normalized surface normal vector for
     /// any Shape that implements this method
-    fn normal_at(&self, point: Tuple) -> anyhow::Result<Tuple>;
+    fn normal_at(&self, point: Tuple) -> Result<Tuple>;
 }
 
 /// Trait that can be used to implement an intersection
@@ -25,7 +30,21 @@ pub trait Intersect {
     /// If there are no points of intersection, an empty vector will
     /// be returned. If there is a tangential intersection, the same
     /// point will be returned twice.
-    fn intersect(&self, ray: &Ray) -> anyhow::Result<Vec<Intersection>>;
+    fn intersect(&self, ray: &Ray) -> Result<Vec<Intersection>> {
+        // First we transform the ray with the inverse of the object's transformation matrix
+        // so we can move/deform the ray instead of moving/deforming the object.
+        //
+        // This enables us to keep the calculation simple since we can assume our unit object
+        // centered at the origin (0, 0, 0), and the ray is transformed in relation to it.
+        let transformed_ray = transform_ray(ray, &inverse_4x4(&self.get_transform())?)?;
+        self.local_intersect(&transformed_ray)
+    }
+
+    /// Returns the object's transformation matrix
+    fn get_transform(&self) -> Matrix<4, 4>;
+
+    /// Returns the local intersection points of the Shape
+    fn local_intersect(&self, transformed_ray: &Ray) -> Result<Vec<Intersection>>;
 }
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 /// Stores all the variants of the Shape type
@@ -44,7 +63,7 @@ impl Shape {
     /// Set the material of the Shape
     pub fn set_material(&mut self, material: Material) {
         match self {
-            Shape::Sphere(ref mut sphere) => sphere.set_material(material),
+            Shape::Sphere(ref mut sphere) => sphere.material = material,
         }
     }
 
@@ -58,7 +77,7 @@ impl Shape {
     /// Set the transform matrix of the Shape
     pub fn set_transform(&mut self, transform: Matrix<4, 4>) {
         match self {
-            Shape::Sphere(ref mut sphere) => sphere.set_transform(transform),
+            Shape::Sphere(ref mut sphere) => sphere.transform_matrix = transform,
         }
     }
 }
@@ -72,9 +91,13 @@ impl SurfaceNormal for Shape {
 }
 
 impl Intersect for Shape {
-    fn intersect(&self, ray: &Ray) -> anyhow::Result<Vec<Intersection>> {
+    fn get_transform(&self) -> Matrix<4, 4> {
+        self.get_transform()
+    }
+
+    fn local_intersect(&self, transformed_ray: &Ray) -> Result<Vec<Intersection>> {
         match self {
-            Shape::Sphere(ref sphere) => sphere.intersect(ray),
+            Shape::Sphere(ref sphere) => sphere.local_intersect(transformed_ray),
         }
     }
 }
