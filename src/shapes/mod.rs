@@ -36,12 +36,12 @@ pub trait Intersect {
         //
         // This enables us to keep the calculation simple since we can assume our unit object
         // centered at the origin (0, 0, 0), and the ray is transformed in relation to it.
-        let transformed_ray = transform_ray(ray, &inverse_4x4(&self.get_transform())?)?;
+        let transformed_ray = transform_ray(ray, &inverse_4x4(self.get_transform())?)?;
         self.local_intersect(&transformed_ray)
     }
 
     /// Returns the object's transformation matrix
-    fn get_transform(&self) -> Matrix<4, 4>;
+    fn get_transform(&self) -> &Matrix<4, 4>;
 
     /// Returns the local intersection points of the Shape
     fn local_intersect(&self, transformed_ray: &Ray) -> Result<Vec<Intersection>>;
@@ -68,9 +68,9 @@ impl Shape {
     }
 
     /// Get the transform matrix of the Shape
-    pub fn get_transform(&self) -> Matrix<4, 4> {
+    pub fn get_transform(&self) -> &Matrix<4, 4> {
         match self {
-            Shape::Sphere(ref sphere) => sphere.transform_matrix,
+            Shape::Sphere(ref sphere) => &sphere.transform_matrix,
         }
     }
 
@@ -91,7 +91,7 @@ impl SurfaceNormal for Shape {
 }
 
 impl Intersect for Shape {
-    fn get_transform(&self) -> Matrix<4, 4> {
+    fn get_transform(&self) -> &Matrix<4, 4> {
         self.get_transform()
     }
 
@@ -123,12 +123,12 @@ mod tests {
         let mut s = ShapeFactory::test_shape();
 
         // by default, the transform matrix of any shape must be an identity matrix
-        assert_eq!(s.get_transform(), Matrix::identity());
+        assert_eq!(s.get_transform(), &Matrix::identity());
 
         // the transform matrix of any shape can be set
         let translation_matrix = translation(2, 3, 5);
         s.set_transform(translation_matrix);
-        assert_eq!(s.get_transform(), translation_matrix);
+        assert_eq!(s.get_transform(), &translation_matrix);
     }
 
     #[test]

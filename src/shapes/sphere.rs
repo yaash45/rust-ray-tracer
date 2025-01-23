@@ -40,8 +40,8 @@ impl Sphere {
 }
 
 impl Intersect for Sphere {
-    fn get_transform(&self) -> Matrix<4, 4> {
-        self.transform_matrix
+    fn get_transform(&self) -> &Matrix<4, 4> {
+        &self.transform_matrix
     }
 
     fn local_intersect(&self, ray: &Ray) -> Result<Vec<Intersection>> {
