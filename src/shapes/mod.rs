@@ -18,7 +18,19 @@ use {
 pub trait SurfaceNormal {
     /// Returns a normalized surface normal vector for
     /// any Shape that implements this method
-    fn normal_at(&self, point: Tuple) -> Result<Tuple>;
+    fn normal_at(&self, point: &Tuple) -> Result<Tuple> {
+        let local_point = &inverse_4x4(self.get_transform())? * point;
+        let local_normal = self.local_normal_at(&local_point)?;
+        let world_normal = &inverse_4x4(self.get_transform())?.transpose() * &local_normal;
+        Ok(world_normal.convert_to_vector().normalize())
+    }
+
+    /// Returns the transform matrix of the Shape
+    fn get_transform(&self) -> &Matrix<4, 4>;
+
+    /// Returns a surface normal for the shape after it has been transformed
+    /// appropriately into object space
+    fn local_normal_at(&self, point: &Tuple) -> Result<Tuple>;
 }
 
 /// Trait that can be used to implement an intersection
@@ -46,6 +58,7 @@ pub trait Intersect {
     /// Returns the local intersection points of the Shape
     fn local_intersect(&self, transformed_ray: &Ray) -> Result<Vec<Intersection>>;
 }
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 /// Stores all the variants of the Shape type
 pub enum Shape {
@@ -83,9 +96,13 @@ impl Shape {
 }
 
 impl SurfaceNormal for Shape {
-    fn normal_at(&self, point: Tuple) -> anyhow::Result<Tuple> {
+    fn get_transform(&self) -> &Matrix<4, 4> {
+        self.get_transform()
+    }
+
+    fn local_normal_at(&self, point: &Tuple) -> Result<Tuple> {
         match self {
-            Shape::Sphere(ref sphere) => sphere.normal_at(point),
+            Shape::Sphere(ref sphere) => sphere.local_normal_at(point),
         }
     }
 }

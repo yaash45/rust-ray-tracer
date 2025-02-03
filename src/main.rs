@@ -5,7 +5,7 @@ use raytracer::color::Color;
 use raytracer::intersections::{hit, Ray};
 use raytracer::lights::{lighting, Material, PointLight};
 use raytracer::matrix::{rotation_x, rotation_y, rotation_z, scaling, translation, view_transform};
-use raytracer::shapes::{Intersect, Shape, Sphere};
+use raytracer::shapes::{Intersect, Shape, Sphere, SurfaceNormal};
 use raytracer::spatial::Tuple;
 use raytracer::tick::{tick, Environment, Projectile};
 use raytracer::world::World;
@@ -150,7 +150,7 @@ fn cast_rays_on_sphere_3d() -> Result<()> {
 
             if cur_hit.is_some() {
                 let point = ray.position(cur_hit.unwrap().t);
-                let normal = s.normal_at(point)?;
+                let normal = s.normal_at(&point)?;
                 let eye = -ray.direction;
                 let color = lighting(&s.material, &light, &point, &eye, &normal, false); // placeholder until shadows are accounted for
 

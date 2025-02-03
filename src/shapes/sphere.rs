@@ -1,9 +1,9 @@
 use {
-    super::{Intersect, Shape},
+    super::{Intersect, Shape, SurfaceNormal},
     crate::{
         intersections::{Intersection, Ray},
         lights::Material,
-        matrix::{inverse_4x4, Matrix},
+        matrix::Matrix,
         spatial::Tuple,
     },
     anyhow::Result,
@@ -30,12 +30,15 @@ impl Sphere {
             material,
         }
     }
+}
 
-    pub fn normal_at(&self, point: Tuple) -> anyhow::Result<Tuple> {
-        let object_point = &(inverse_4x4(&self.transform_matrix)?) * &point;
-        let object_normal = &object_point - &Tuple::point(0, 0, 0);
-        let world_normal = &(inverse_4x4(&self.transform_matrix)?.transpose()) * &object_normal;
-        Ok(world_normal.convert_to_vector().normalize())
+impl SurfaceNormal for Sphere {
+    fn local_normal_at(&self, point: &Tuple) -> Result<Tuple> {
+        Ok(point - &Tuple::point(0, 0, 0))
+    }
+
+    fn get_transform(&self) -> &Matrix<4, 4> {
+        &self.transform_matrix
     }
 }
 
@@ -89,7 +92,7 @@ mod tests {
         intersections::{Computations, Intersection, Ray},
         lights::Material,
         matrix::{rotation_z, scaling, translation, Matrix},
-        shapes::{Intersect, Shape, Sphere},
+        shapes::{Intersect, Shape, Sphere, SurfaceNormal},
         spatial::Tuple,
         utils::EPSILON,
     };
@@ -213,9 +216,9 @@ mod tests {
         let mut s = Sphere::default();
 
         // test some basic surface normals out for a unit sphere
-        assert_eq!(s.normal_at(Tuple::point(1, 0, 0))?, Tuple::vector(1, 0, 0));
-        assert_eq!(s.normal_at(Tuple::point(0, 1, 0))?, Tuple::vector(0, 1, 0));
-        assert_eq!(s.normal_at(Tuple::point(0, 0, 1))?, Tuple::vector(0, 0, 1));
+        assert_eq!(s.normal_at(&Tuple::point(1, 0, 0))?, Tuple::vector(1, 0, 0));
+        assert_eq!(s.normal_at(&Tuple::point(0, 1, 0))?, Tuple::vector(0, 1, 0));
+        assert_eq!(s.normal_at(&Tuple::point(0, 0, 1))?, Tuple::vector(0, 0, 1));
 
         // now we check that the normal vector returned is also normalized
         let n = Tuple::vector(
@@ -225,7 +228,7 @@ mod tests {
         );
 
         assert_eq!(
-            s.normal_at(Tuple::point(
+            s.normal_at(&Tuple::point(
                 3.0_f64.sqrt() / 3.0,
                 3.0_f64.sqrt() / 3.0,
                 3.0_f64.sqrt() / 3.0
@@ -238,14 +241,14 @@ mod tests {
         // the normal_at function should be able to handle transforms
         s.transform_matrix = translation(0, 1, 0);
         assert_eq!(
-            s.normal_at(Tuple::point(0, 1.70711, -FRAC_1_SQRT_2))?,
+            s.normal_at(&Tuple::point(0, 1.70711, -FRAC_1_SQRT_2))?,
             Tuple::vector(0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2)
         );
 
         let transform = (&scaling(1, 0.5, 1) * &rotation_z(PI / 5.0))?;
         s.transform_matrix = transform;
         assert_eq!(
-            s.normal_at(Tuple::point(0, SQRT_2 / 2.0, -SQRT_2 / 2.0))?,
+            s.normal_at(&Tuple::point(0, SQRT_2 / 2.0, -SQRT_2 / 2.0))?,
             Tuple::vector(0, 0.97014, -0.24254)
         );
 

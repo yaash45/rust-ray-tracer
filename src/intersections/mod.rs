@@ -83,7 +83,7 @@ impl Computations {
         // Precompute some useful values
         let point = r.position(t);
         let eyev = -r.direction;
-        let mut normalv = object.normal_at(point)?;
+        let mut normalv = object.normal_at(&point)?;
         let mut inside = false;
 
         if normalv.dot(&eyev) < 0.0 {
