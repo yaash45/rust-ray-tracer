@@ -1,6 +1,6 @@
 use std::ops;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 /// Simple enum to differentiate between different types of spatial propertries
 ///
 /// The two valid properties are `Points` and `Vectors`, but we also include an

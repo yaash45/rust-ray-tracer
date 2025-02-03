@@ -2,9 +2,10 @@ use anyhow::Result;
 use raytracer::camera::Camera;
 use raytracer::canvas::Canvas;
 use raytracer::color::Color;
-use raytracer::intersections::{hit, Object, Ray, Sphere};
+use raytracer::intersections::{hit, Ray};
 use raytracer::lights::{lighting, Material, PointLight};
 use raytracer::matrix::{rotation_x, rotation_y, rotation_z, scaling, translation, view_transform};
+use raytracer::shapes::{Intersect, Shape, Sphere, SurfaceNormal};
 use raytracer::spatial::Tuple;
 use raytracer::tick::{tick, Environment, Projectile};
 use raytracer::world::World;
@@ -45,7 +46,7 @@ fn projectile_example() -> Result<()> {
 }
 
 #[allow(dead_code)]
-/// Chapter 4 analock clock example
+/// Chapter 4 analog clock example
 fn analog_clock() -> Result<()> {
     let height = 500;
     let width = 500;
@@ -87,7 +88,7 @@ fn cast_rays_on_sphere_2d() -> Result<()> {
     let mut canvas = Canvas::new(height, width);
 
     let mut s = Sphere::default();
-    s.set_transform((&rotation_z(PI / 4.0) * &scaling(0.5, 1, 1))?);
+    s.transform_matrix = (&rotation_z(PI / 4.0) * &scaling(0.5, 1, 1))?;
 
     for y in 0..(height - 1) {
         let world_y = half - (y as f64 * pixel_size);
@@ -149,7 +150,7 @@ fn cast_rays_on_sphere_3d() -> Result<()> {
 
             if cur_hit.is_some() {
                 let point = ray.position(cur_hit.unwrap().t);
-                let normal = s.normal_at(point)?;
+                let normal = s.normal_at(&point)?;
                 let eye = -ray.direction;
                 let color = lighting(&s.material, &light, &point, &eye, &normal, false); // placeholder until shadows are accounted for
 
@@ -208,12 +209,12 @@ fn render_a_world_chapter_7(vsize: usize, hsize: usize) -> Result<()> {
 
     let mut world = World::empty();
     world.set_light(Some(light_source));
-    world.add_object(Object::Sphere(floor));
-    world.add_object(Object::Sphere(left_wall));
-    world.add_object(Object::Sphere(right_wall));
-    world.add_object(Object::Sphere(middle));
-    world.add_object(Object::Sphere(left));
-    world.add_object(Object::Sphere(right));
+    world.add_object(Shape::Sphere(floor));
+    world.add_object(Shape::Sphere(left_wall));
+    world.add_object(Shape::Sphere(right_wall));
+    world.add_object(Shape::Sphere(middle));
+    world.add_object(Shape::Sphere(left));
+    world.add_object(Shape::Sphere(right));
 
     let mut camera = Camera::new(hsize, vsize, PI / 3.0);
     camera.set_transform(view_transform(

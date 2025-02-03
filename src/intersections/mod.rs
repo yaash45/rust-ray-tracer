@@ -1,12 +1,14 @@
-mod objects;
 mod operations;
 mod ray;
 
-pub use objects::{Intersect, Object, Sphere, SurfaceNormal};
 pub use operations::{hit, reflect, transform_ray};
 pub use ray::Ray;
 
-use crate::{spatial::Tuple, utils::EPSILON};
+use crate::{
+    shapes::{Shape, SurfaceNormal},
+    spatial::Tuple,
+    utils::EPSILON,
+};
 use anyhow::Result;
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
@@ -14,13 +16,13 @@ use anyhow::Result;
 /// for a given object
 pub struct Intersection {
     pub t: f64,
-    pub object: Object,
+    pub object: Shape,
 }
 
 impl Intersection {
     /// Create a new Intersection for a given object using
     /// the calculated `t` value of a Ray intersecting `object`
-    pub fn new(t: impl Into<f64>, object: Object) -> Self {
+    pub fn new(t: impl Into<f64>, object: Shape) -> Self {
         Self {
             t: t.into(),
             object,
@@ -32,7 +34,7 @@ impl Intersection {
 /// Struct containing pre-computed values using rays and intersections
 pub struct Computations {
     t: f64,
-    object: Object,
+    object: Shape,
     point: Tuple,
     eyev: Tuple,
     normalv: Tuple,
@@ -42,7 +44,7 @@ pub struct Computations {
 
 impl Computations {
     /// Get a reference to the object in the computation
-    pub fn get_object(&self) -> &Object {
+    pub fn get_object(&self) -> &Shape {
         &self.object
     }
 
@@ -81,7 +83,7 @@ impl Computations {
         // Precompute some useful values
         let point = r.position(t);
         let eyev = -r.direction;
-        let mut normalv = object.normal_at(point)?;
+        let mut normalv = object.normal_at(&point)?;
         let mut inside = false;
 
         if normalv.dot(&eyev) < 0.0 {
@@ -107,19 +109,20 @@ impl Computations {
 mod tests {
     use crate::spatial::Tuple;
 
-    use super::{Computations, Intersection, Object, Ray, Sphere};
+    use super::{Computations, Intersection, Ray, Shape};
+    use crate::shapes::Sphere;
     use anyhow::Result;
 
     #[test]
     fn precomputing_state_of_intersection_when_it_is_outside() -> Result<()> {
         let ray = Ray::new(Tuple::point(0, 0, -5), Tuple::vector(0, 0, 1))?;
         let sphere = Sphere::default();
-        let intersection = Intersection::new(4, Object::Sphere(sphere));
+        let intersection = Intersection::new(4, Shape::Sphere(sphere));
 
         let comps = Computations::prepare_computations(&intersection, &ray)?;
 
         assert_eq!(comps.t, intersection.t);
-        assert_eq!(comps.object, Object::Sphere(sphere));
+        assert_eq!(comps.object, Shape::Sphere(sphere));
         assert_eq!(comps.point, Tuple::point(0, 0, -1));
         assert_eq!(comps.eyev, Tuple::vector(0, 0, -1));
         assert_eq!(comps.normalv, Tuple::vector(0, 0, -1));
@@ -132,7 +135,7 @@ mod tests {
     fn precomputing_state_of_intersection_when_it_is_inside() -> Result<()> {
         let ray = Ray::new(Tuple::point(0, 0, 0), Tuple::vector(0, 0, 1))?;
         let sphere = Sphere::default();
-        let intersection = Intersection::new(1, Object::Sphere(sphere));
+        let intersection = Intersection::new(1, Shape::Sphere(sphere));
 
         let comps = Computations::prepare_computations(&intersection, &ray)?;
 

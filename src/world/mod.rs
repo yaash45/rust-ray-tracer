@@ -1,8 +1,9 @@
 use crate::{
     color::Color,
-    intersections::{hit, Computations, Intersect, Intersection, Object, Ray, Sphere},
+    intersections::{hit, Computations, Intersection, Ray},
     lights::{lighting, PointLight},
     matrix::scaling,
+    shapes::{Intersect, Shape, Sphere},
     spatial::Tuple,
 };
 use anyhow::Result;
@@ -12,7 +13,7 @@ use anyhow::Result;
 /// objects and a light source
 pub struct World {
     pub light: Option<PointLight>,
-    pub objects: Vec<Object>,
+    pub objects: Vec<Shape>,
 }
 
 impl World {
@@ -40,7 +41,7 @@ impl World {
     }
 
     /// Add an object to the world
-    pub fn add_object(&mut self, obj: Object) {
+    pub fn add_object(&mut self, obj: Shape) {
         self.objects.push(obj);
     }
 
@@ -127,11 +128,11 @@ impl Default for World {
         s1.material.set_specular(0.2);
 
         let mut s2 = Sphere::default();
-        s2.set_transform(scaling(0.5, 0.5, 0.5));
+        s2.transform_matrix = scaling(0.5, 0.5, 0.5);
 
         Self {
             light: Some(light_source),
-            objects: vec![Object::Sphere(s1), Object::Sphere(s2)],
+            objects: vec![Shape::Sphere(s1), Shape::Sphere(s2)],
         }
     }
 }
@@ -141,9 +142,10 @@ mod test {
     use super::World;
     use crate::{
         color::Color,
-        intersections::{Computations, Intersection, Object, Ray, Sphere},
+        intersections::{Computations, Intersection, Ray},
         lights::PointLight,
         matrix::translation,
+        shapes::{Shape, Sphere},
         spatial::Tuple,
     };
     use anyhow::Result;
@@ -239,8 +241,13 @@ mod test {
     #[test]
     fn color_at_when_intersection_is_behind_ray() -> Result<()> {
         let mut w = World::default();
-        w.objects[0].set_ambient(1.0);
-        w.objects[1].set_ambient(1.0);
+        let mut m = w.objects[0].get_material();
+        m.set_ambient(1.0);
+        w.objects[0].set_material(m);
+
+        let mut m = w.objects[1].get_material();
+        m.set_ambient(1.0);
+        w.objects[1].set_material(m);
 
         let r = Ray::new(Tuple::point(0, 0, 0.75), Tuple::vector(0, 0, -1))?;
         let c = w.color_at(&r)?;
@@ -278,14 +285,14 @@ mod test {
         w.set_light(Some(light));
 
         let s1 = Sphere::default();
-        w.add_object(Object::Sphere(s1));
+        w.add_object(Shape::Sphere(s1));
 
         let mut s2 = Sphere::default();
-        s2.set_transform(translation(0, 0, 10));
-        w.add_object(Object::Sphere(s2));
+        s2.transform_matrix = translation(0, 0, 10);
+        w.add_object(Shape::Sphere(s2));
 
         let r = Ray::new(Tuple::point(0, 0, 5), Tuple::vector(0, 0, 1))?;
-        let i = Intersection::new(4, Object::Sphere(s2));
+        let i = Intersection::new(4, Shape::Sphere(s2));
 
         let comps = Computations::prepare_computations(&i, &r)?;
         let c = w.shade_hit(&comps)?;

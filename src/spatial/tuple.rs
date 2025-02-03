@@ -2,7 +2,7 @@ use super::identifier::Identifier;
 use crate::utils::float_equals;
 use std::ops;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialOrd)]
 /// Representation of a spatial property like a Vector, or Point
 pub struct Tuple {
     x: f64,

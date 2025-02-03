@@ -28,6 +28,10 @@ pub mod lights;
 /// and objects
 pub mod world;
 
+/// Contains representations of the various shapes and implementations
+/// for their common traits (such as surface normals, intersections, etc.)
+pub mod shapes;
+
 /// The `spatial` module contains the representation for key
 /// three-dimensional spatial properties like Points and Vectors
 pub mod spatial;

@@ -1,7 +1,7 @@
 use crate::spatial::Tuple;
 use anyhow::{Error, Result};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 /// A data structure representing the origin and direction of a ray
 pub struct Ray {
     /// The origin point of this [Ray]
