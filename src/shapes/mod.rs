@@ -1,5 +1,7 @@
+mod plane;
 mod sphere;
 
+pub use plane::Plane;
 pub use sphere::Sphere;
 
 use {
@@ -63,6 +65,7 @@ pub trait Intersect {
 /// Stores all the variants of the Shape type
 pub enum Shape {
     Sphere(Sphere),
+    Plane(Plane),
 }
 
 impl Shape {
@@ -70,6 +73,7 @@ impl Shape {
     pub fn get_material(&self) -> Material {
         match self {
             Shape::Sphere(ref sphere) => sphere.material,
+            Shape::Plane(ref plane) => plane.material,
         }
     }
 
@@ -77,6 +81,7 @@ impl Shape {
     pub fn set_material(&mut self, material: Material) {
         match self {
             Shape::Sphere(ref mut sphere) => sphere.material = material,
+            Shape::Plane(ref mut plane) => plane.material = material,
         }
     }
 
@@ -84,6 +89,7 @@ impl Shape {
     pub fn get_transform(&self) -> &Matrix<4, 4> {
         match self {
             Shape::Sphere(ref sphere) => &sphere.transform_matrix,
+            Shape::Plane(ref plane) => &plane.transform_matrix,
         }
     }
 
@@ -91,6 +97,7 @@ impl Shape {
     pub fn set_transform(&mut self, transform: Matrix<4, 4>) {
         match self {
             Shape::Sphere(ref mut sphere) => sphere.transform_matrix = transform,
+            Shape::Plane(ref mut plane) => plane.transform_matrix = transform,
         }
     }
 }
@@ -103,6 +110,7 @@ impl SurfaceNormal for Shape {
     fn local_normal_at(&self, point: &Tuple) -> Result<Tuple> {
         match self {
             Shape::Sphere(ref sphere) => sphere.local_normal_at(point),
+            Shape::Plane(ref plane) => plane.local_normal_at(point),
         }
     }
 }
@@ -115,6 +123,7 @@ impl Intersect for Shape {
     fn local_intersect(&self, transformed_ray: &Ray) -> Result<Vec<Intersection>> {
         match self {
             Shape::Sphere(ref sphere) => sphere.local_intersect(transformed_ray),
+            Shape::Plane(ref plane) => plane.local_intersect(transformed_ray),
         }
     }
 }
