@@ -5,7 +5,7 @@ use raytracer::color::Color;
 use raytracer::intersections::{hit, Ray};
 use raytracer::lights::{lighting, Material, PointLight};
 use raytracer::matrix::{rotation_x, rotation_y, rotation_z, scaling, translation, view_transform};
-use raytracer::shapes::{Intersect, Shape, Sphere, SurfaceNormal};
+use raytracer::shapes::{Intersect, Plane, Shape, Sphere, SurfaceNormal};
 use raytracer::spatial::Tuple;
 use raytracer::tick::{tick, Environment, Projectile};
 use raytracer::world::World;
@@ -165,21 +165,24 @@ fn cast_rays_on_sphere_3d() -> Result<()> {
 }
 
 #[allow(dead_code)]
-fn render_a_world_chapter_7(vsize: usize, hsize: usize) -> Result<()> {
+fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     let mut floor_material = Material::default();
-    floor_material.set_color(Color::new(1, 0.9, 0.9));
+    floor_material.set_color(Color::new(0.17, 0.4, 0.925));
     floor_material.set_specular(0.0);
-    let floor = Sphere::new(scaling(10, 0.01, 10), floor_material);
+    let floor = Plane::new(translation(0, 0.4, 0), floor_material);
 
     let mut left_wall_transform = (&translation(0, 0, 5) * &rotation_y(-PI / 4.0))?;
     left_wall_transform = (&left_wall_transform * &rotation_x(PI / 2.0))?;
     left_wall_transform = (&left_wall_transform * &scaling(10, 0.01, 10))?;
-    let left_wall = Sphere::new(left_wall_transform, floor_material);
+    let mut left_wall_material = floor_material;
+    left_wall_material.set_color(Color::new(1, 0.9, 0.9));
+    let left_wall = Plane::new(left_wall_transform, left_wall_material);
 
     let mut right_wall_transform = (&translation(0, 0, 5) * &rotation_y(PI / 4.0))?;
     right_wall_transform = (&right_wall_transform * &rotation_x(PI / 2.0))?;
     right_wall_transform = (&right_wall_transform * &scaling(10, 0.01, 10))?;
-    let right_wall = Sphere::new(right_wall_transform, floor_material);
+    let right_wall_material = left_wall_material;
+    let right_wall = Plane::new(right_wall_transform, right_wall_material);
 
     let mut middle_material = Material::default();
     middle_material.set_color(Color::new(0.1, 1, 0.5));
@@ -209,9 +212,9 @@ fn render_a_world_chapter_7(vsize: usize, hsize: usize) -> Result<()> {
 
     let mut world = World::empty();
     world.set_light(Some(light_source));
-    world.add_object(Shape::Sphere(floor));
-    world.add_object(Shape::Sphere(left_wall));
-    world.add_object(Shape::Sphere(right_wall));
+    world.add_object(Shape::Plane(floor));
+    world.add_object(Shape::Plane(left_wall));
+    world.add_object(Shape::Plane(right_wall));
     world.add_object(Shape::Sphere(middle));
     world.add_object(Shape::Sphere(left));
     world.add_object(Shape::Sphere(right));
@@ -251,8 +254,8 @@ fn main() -> Result<()> {
     // cast rays on a sphere example from chapter 6
     // cast_rays_on_sphere_3d()?;
 
-    // render a world from chapter 7
-    render_a_world_chapter_7(500, 500)?;
+    // render a world from chapter 7, etc.
+    render_a_world(100, 100)?;
 
     Ok(())
 }
