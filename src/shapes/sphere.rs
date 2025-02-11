@@ -3,7 +3,7 @@ use {
     crate::{
         intersections::{Intersection, Ray},
         lights::Material,
-        matrix::Matrix,
+        matrix::{Matrix, Transformable},
         spatial::Tuple,
     },
     anyhow::Result,
@@ -32,21 +32,23 @@ impl Sphere {
     }
 }
 
+impl Transformable for Sphere {
+    fn get_transform(&self) -> &Matrix<4, 4> {
+        &self.transform_matrix
+    }
+
+    fn set_transform(&mut self, transform_matrix: Matrix<4, 4>) {
+        self.transform_matrix = transform_matrix;
+    }
+}
+
 impl SurfaceNormal for Sphere {
     fn local_normal_at(&self, point: &Tuple) -> Result<Tuple> {
         Ok(point - &Tuple::point(0, 0, 0))
     }
-
-    fn get_transform(&self) -> &Matrix<4, 4> {
-        &self.transform_matrix
-    }
 }
 
 impl Intersect for Sphere {
-    fn get_transform(&self) -> &Matrix<4, 4> {
-        &self.transform_matrix
-    }
-
     fn local_intersect(&self, ray: &Ray) -> Result<Vec<Intersection>> {
         let sphere_to_ray = &ray.origin - &Tuple::point(0, 0, 0);
         let a = ray.direction.dot(&ray.direction);

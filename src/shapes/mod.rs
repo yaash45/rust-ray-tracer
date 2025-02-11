@@ -4,6 +4,8 @@ mod sphere;
 pub use plane::Plane;
 pub use sphere::Sphere;
 
+use crate::matrix::Transformable;
+
 use {
     crate::{
         intersections::{transform_ray, Intersection, Ray},
@@ -17,7 +19,7 @@ use {
 /// Trait that can be used to implement a way to get
 /// surface normals for any Shapes that might implement
 /// this trait
-pub trait SurfaceNormal {
+pub trait SurfaceNormal: Transformable {
     /// Returns a normalized surface normal vector for
     /// any Shape that implements this method
     fn normal_at(&self, point: &Tuple) -> Result<Tuple> {
@@ -28,7 +30,7 @@ pub trait SurfaceNormal {
     }
 
     /// Returns the transform matrix of the Shape
-    fn get_transform(&self) -> &Matrix<4, 4>;
+    // fn get_transform(&self) -> &Matrix<4, 4>;
 
     /// Returns a surface normal for the shape after it has been transformed
     /// appropriately into object space
@@ -37,7 +39,7 @@ pub trait SurfaceNormal {
 
 /// Trait that can be used to implement an intersection
 /// calculation for any Shapes that implement it
-pub trait Intersect {
+pub trait Intersect: Transformable {
     /// Calculates the points of intersection for given [Ray] with
     /// the Shape implementing this trait.
     ///
@@ -53,9 +55,6 @@ pub trait Intersect {
         let transformed_ray = transform_ray(ray, &inverse_4x4(self.get_transform())?)?;
         self.local_intersect(&transformed_ray)
     }
-
-    /// Returns the object's transformation matrix
-    fn get_transform(&self) -> &Matrix<4, 4>;
 
     /// Returns the local intersection points of the Shape
     fn local_intersect(&self, transformed_ray: &Ray) -> Result<Vec<Intersection>>;
@@ -84,29 +83,25 @@ impl Shape {
             Shape::Plane(ref mut plane) => plane.material = material,
         }
     }
+}
 
-    /// Get the transform matrix of the Shape
-    pub fn get_transform(&self) -> &Matrix<4, 4> {
+impl Transformable for Shape {
+    fn get_transform(&self) -> &Matrix<4, 4> {
         match self {
             Shape::Sphere(ref sphere) => &sphere.transform_matrix,
             Shape::Plane(ref plane) => &plane.transform_matrix,
         }
     }
 
-    /// Set the transform matrix of the Shape
-    pub fn set_transform(&mut self, transform: Matrix<4, 4>) {
+    fn set_transform(&mut self, matrix: Matrix<4, 4>) {
         match self {
-            Shape::Sphere(ref mut sphere) => sphere.transform_matrix = transform,
-            Shape::Plane(ref mut plane) => plane.transform_matrix = transform,
+            Shape::Sphere(ref mut sphere) => sphere.transform_matrix = matrix,
+            Shape::Plane(ref mut plane) => plane.transform_matrix = matrix,
         }
     }
 }
 
 impl SurfaceNormal for Shape {
-    fn get_transform(&self) -> &Matrix<4, 4> {
-        self.get_transform()
-    }
-
     fn local_normal_at(&self, point: &Tuple) -> Result<Tuple> {
         match self {
             Shape::Sphere(ref sphere) => sphere.local_normal_at(point),
@@ -116,10 +111,6 @@ impl SurfaceNormal for Shape {
 }
 
 impl Intersect for Shape {
-    fn get_transform(&self) -> &Matrix<4, 4> {
-        self.get_transform()
-    }
-
     fn local_intersect(&self, transformed_ray: &Ray) -> Result<Vec<Intersection>> {
         match self {
             Shape::Sphere(ref sphere) => sphere.local_intersect(transformed_ray),
@@ -133,7 +124,7 @@ mod tests {
 
     use super::{Shape, Sphere};
     use crate::lights::Material;
-    use crate::matrix::{translation, Matrix};
+    use crate::matrix::{translation, Matrix, Transformable};
 
     struct ShapeFactory {}
 

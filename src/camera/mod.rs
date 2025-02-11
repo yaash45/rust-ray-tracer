@@ -1,7 +1,7 @@
 use crate::{
     canvas::Canvas,
     intersections::Ray,
-    matrix::{inverse_4x4, Matrix},
+    matrix::{inverse_4x4, Matrix, Transformable},
     spatial::Tuple,
     world::World,
 };
@@ -66,16 +66,6 @@ impl Camera {
         self.field_of_view
     }
 
-    /// Get the transform matrix for the camera
-    pub fn get_transform(&self) -> &Matrix<4, 4> {
-        &self.transform
-    }
-
-    /// Mutate the camera by setting a new transform matrix
-    pub fn set_transform(&mut self, transform: Matrix<4, 4>) {
-        self.transform = transform;
-    }
-
     /// Get the calculated pixel size for the camera based on the
     /// height, width, and field of view
     pub fn get_pixel_size(&self) -> f64 {
@@ -120,12 +110,22 @@ impl Camera {
     }
 }
 
+impl Transformable for Camera {
+    fn get_transform(&self) -> &Matrix<4, 4> {
+        &self.transform
+    }
+
+    fn set_transform(&mut self, transform_matrix: Matrix<4, 4>) {
+        self.transform = transform_matrix;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Camera;
     use crate::{
         color::Color,
-        matrix::{rotation_y, translation, view_transform},
+        matrix::{rotation_y, translation, view_transform, Transformable},
         spatial::Tuple,
         utils::float_equals,
         world::World,

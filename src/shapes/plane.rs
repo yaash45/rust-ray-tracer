@@ -1,7 +1,7 @@
 use crate::{
     intersections::{Intersection, Ray},
     lights::Material,
-    matrix::Matrix,
+    matrix::{Matrix, Transformable},
     spatial::Tuple,
     utils::EPSILON,
 };
@@ -31,21 +31,23 @@ impl Plane {
     }
 }
 
-impl SurfaceNormal for Plane {
+impl Transformable for Plane {
     fn get_transform(&self) -> &Matrix<4, 4> {
         &self.transform_matrix
     }
 
+    fn set_transform(&mut self, transform_matrix: Matrix<4, 4>) {
+        self.transform_matrix = transform_matrix;
+    }
+}
+
+impl SurfaceNormal for Plane {
     fn local_normal_at(&self, _point: &Tuple) -> Result<Tuple> {
         Ok(Tuple::vector(0, 1, 0))
     }
 }
 
 impl Intersect for Plane {
-    fn get_transform(&self) -> &Matrix<4, 4> {
-        &self.transform_matrix
-    }
-
     fn local_intersect(&self, ray: &Ray) -> Result<Vec<Intersection>> {
         if ray.direction.get_y().abs() < EPSILON {
             return Ok(vec![]);

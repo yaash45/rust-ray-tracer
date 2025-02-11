@@ -4,7 +4,9 @@ use raytracer::canvas::Canvas;
 use raytracer::color::Color;
 use raytracer::intersections::{hit, Ray};
 use raytracer::lights::{lighting, Material, PointLight};
-use raytracer::matrix::{rotation_x, rotation_y, rotation_z, scaling, translation, view_transform};
+use raytracer::matrix::{
+    rotation_x, rotation_y, rotation_z, scaling, translation, view_transform, Transformable,
+};
 use raytracer::shapes::{Intersect, Plane, Shape, Sphere, SurfaceNormal};
 use raytracer::spatial::Tuple;
 use raytracer::tick::{tick, Environment, Projectile};
