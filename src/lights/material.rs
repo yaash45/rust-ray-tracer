@@ -2,12 +2,20 @@ use typed_floats::tf64::Positive;
 
 use crate::{color::Color, utils::float_equals};
 
+use super::StripedPattern;
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+pub enum MaterialColor {
+    Solid(Color),
+    StripedPattern(StripedPattern),
+}
+
 #[derive(Debug, Clone, Copy, PartialOrd)]
 /// Data structure capturing attributes such as surface color,
 /// shininess, diffusion, specular, and ambience. These materials
 /// are then associated with objects to give them these properties.
 pub struct Material {
-    color: Color,
+    color: MaterialColor,
     ambient: Positive,
     diffuse: Positive,
     specular: Positive,
@@ -16,7 +24,13 @@ pub struct Material {
 
 impl Material {
     /// Create a new instance of the default material
-    pub fn new(color: Color, ambient: f64, diffuse: f64, specular: f64, shininess: f64) -> Self {
+    pub fn new(
+        color: MaterialColor,
+        ambient: f64,
+        diffuse: f64,
+        specular: f64,
+        shininess: f64,
+    ) -> Self {
         Self {
             color,
             ambient: Positive::new(ambient).unwrap(),
@@ -27,13 +41,27 @@ impl Material {
     }
 
     /// Get the color of the material
-    pub fn get_color(&self) -> Color {
-        self.color
+    pub fn get_color(&self) -> Option<Color> {
+        match self.color {
+            MaterialColor::Solid(s) => Some(s),
+            MaterialColor::StripedPattern(_p) => None,
+        }
     }
 
     /// Set the color value for a material
     pub fn set_color(&mut self, color: Color) {
-        self.color = color;
+        self.color = MaterialColor::Solid(color);
+    }
+
+    pub fn get_pattern(&self) -> Option<StripedPattern> {
+        match self.color {
+            MaterialColor::Solid(_s) => None,
+            MaterialColor::StripedPattern(p) => Some(p),
+        }
+    }
+
+    pub fn set_pattern(&mut self, pattern: StripedPattern) {
+        self.color = MaterialColor::StripedPattern(pattern);
     }
 
     /// Get the ambient attribute for a material
@@ -80,7 +108,7 @@ impl Material {
 impl Default for Material {
     fn default() -> Self {
         Self {
-            color: Color::new(1, 1, 1),
+            color: MaterialColor::Solid(Color::white()),
             ambient: Positive::new(0.1).unwrap(),
             diffuse: Positive::new(0.9).unwrap(),
             specular: Positive::new(0.9).unwrap(),
@@ -108,7 +136,7 @@ mod test {
     fn create_default_material() {
         let m = Material::default();
 
-        assert_eq!(m.get_color(), Color::new(1, 1, 1));
+        assert_eq!(m.get_color(), Some(Color::new(1, 1, 1)));
         assert_eq!(m.get_ambient(), 0.1);
         assert_eq!(m.get_diffuse(), 0.9);
         assert_eq!(m.get_specular(), 0.9);

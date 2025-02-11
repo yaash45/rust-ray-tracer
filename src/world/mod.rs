@@ -251,7 +251,13 @@ mod test {
 
         let r = Ray::new(Tuple::point(0, 0, 0.75), Tuple::vector(0, 0, -1))?;
         let c = w.color_at(&r)?;
-        assert_eq!(c, w.objects[1].get_material().get_color());
+        assert_eq!(
+            c,
+            w.objects[1]
+                .get_material()
+                .get_color()
+                .expect("color not found for material")
+        );
         Ok(())
     }
 

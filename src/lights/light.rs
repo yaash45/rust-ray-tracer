@@ -42,8 +42,15 @@ pub fn lighting(
     normalv: &Tuple,
     in_shadow: bool,
 ) -> Color {
-    // combine surface color with the light's intensity/color
-    let effective_color = material.get_color() * point_light.intensity;
+    let effective_color;
+
+    if let Some(color) = material.get_color() {
+        effective_color = color * point_light.intensity;
+    } else if let Some(pattern) = material.get_pattern() {
+        effective_color = pattern.stripe_at(position) * point_light.intensity;
+    } else {
+        effective_color = Color::white();
+    }
 
     // compute ambient contribution
     let ambient = effective_color * material.get_ambient();

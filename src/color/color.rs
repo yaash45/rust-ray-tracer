@@ -36,6 +36,14 @@ impl Color {
         }
     }
 
+    pub fn white() -> Self {
+        Color {
+            red: 1.0,
+            green: 1.0,
+            blue: 1.0,
+        }
+    }
+
     /// Quick shortcut method to create the color Black (0,0,0)
     ///
     /// ```

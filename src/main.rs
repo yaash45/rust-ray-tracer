@@ -3,9 +3,9 @@ use raytracer::camera::Camera;
 use raytracer::canvas::Canvas;
 use raytracer::color::Color;
 use raytracer::intersections::{hit, Ray};
-use raytracer::lights::{lighting, Material, PointLight};
+use raytracer::lights::{lighting, Material, PointLight, StripedPattern};
 use raytracer::matrix::{
-    rotation_x, rotation_y, rotation_z, scaling, translation, view_transform, Transformable,
+    rotation_x, rotation_y, rotation_z, scaling, translation, view_transform, Matrix, Transformable,
 };
 use raytracer::shapes::{Intersect, Plane, Shape, Sphere, SurfaceNormal};
 use raytracer::spatial::Tuple;
@@ -187,10 +187,18 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     let right_wall = Plane::new(right_wall_transform, right_wall_material);
 
     let mut middle_material = Material::default();
-    middle_material.set_color(Color::new(0.1, 1, 0.5));
+    // middle_material.set_color(Color::new(0.1, 1, 0.5));
+    middle_material.set_pattern(StripedPattern::new(
+        Color::red(),
+        Color::blue(),
+        Matrix::<4, 4>::identity(),
+    ));
     middle_material.set_diffuse(0.7);
     middle_material.set_specular(0.3);
-    let middle = Sphere::new(translation(-0.5, 1, 0.5), middle_material);
+    let middle = Sphere::new(
+        (&translation(-0.5, 1, 0.5) * &scaling(1.5, 1.5, 1.5))?,
+        middle_material,
+    );
 
     let mut right_material = Material::default();
     right_material.set_color(Color::new(0.5, 1, 0.1));
