@@ -5,7 +5,7 @@ use raytracer::color::Color;
 use raytracer::intersections::{hit, Ray};
 use raytracer::lights::{lighting, Material, PointLight, StripedPattern};
 use raytracer::matrix::{
-    rotation_x, rotation_y, rotation_z, scaling, translation, view_transform, Matrix, Transformable,
+    rotation_x, rotation_y, rotation_z, scaling, translation, view_transform, Transformable,
 };
 use raytracer::shapes::{Intersect, Plane, Shape, Sphere, SurfaceNormal};
 use raytracer::spatial::Tuple;
@@ -154,7 +154,15 @@ fn cast_rays_on_sphere_3d() -> Result<()> {
                 let point = ray.position(cur_hit.unwrap().t);
                 let normal = s.normal_at(&point)?;
                 let eye = -ray.direction;
-                let color = lighting(&s.material, &light, &point, &eye, &normal, false); // placeholder until shadows are accounted for
+                let color = lighting(
+                    &s.material,
+                    &Shape::Sphere(s),
+                    &light,
+                    &point,
+                    &eye,
+                    &normal,
+                    false,
+                )?; // placeholder until shadows are accounted for
 
                 canvas.write_pixel(x, y, color)?;
             }
@@ -189,9 +197,9 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     let mut middle_material = Material::default();
     // middle_material.set_color(Color::new(0.1, 1, 0.5));
     middle_material.set_pattern(StripedPattern::new(
-        Color::red(),
+        Color::white(),
         Color::blue(),
-        Matrix::<4, 4>::identity(),
+        (&scaling(0.1, 0.1, 0.1) * &rotation_y(PI / 4.0))?,
     ));
     middle_material.set_diffuse(0.7);
     middle_material.set_specular(0.3);

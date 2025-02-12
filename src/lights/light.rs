@@ -1,4 +1,4 @@
-use crate::{color::Color, intersections::reflect, spatial::Tuple};
+use crate::{color::Color, intersections::reflect, shapes::Shape, spatial::Tuple};
 use anyhow::{Error, Result};
 
 use super::Material;
@@ -36,18 +36,19 @@ impl PointLight {
 /// Phong reflection model
 pub fn lighting(
     material: &Material,
+    object: &Shape,
     point_light: &PointLight,
     position: &Tuple,
     eyev: &Tuple,
     normalv: &Tuple,
     in_shadow: bool,
-) -> Color {
+) -> Result<Color> {
     let effective_color;
 
     if let Some(color) = material.get_color() {
         effective_color = color * point_light.intensity;
     } else if let Some(pattern) = material.get_pattern() {
-        effective_color = pattern.stripe_at(position) * point_light.intensity;
+        effective_color = pattern.stripe_at_object(object, position)? * point_light.intensity;
     } else {
         effective_color = Color::white();
     }
@@ -57,7 +58,7 @@ pub fn lighting(
 
     // if we're in a shadow, we can ignore the diffuse and specular components
     if in_shadow {
-        return ambient;
+        return Ok(ambient);
     }
 
     // find the direction to the light source
@@ -87,16 +88,27 @@ pub fn lighting(
         }
     }
 
-    ambient + diffuse + specular
+    Ok(ambient + diffuse + specular)
 }
 
 #[cfg(test)]
 mod tests {
+    use super::{lighting, Material, PointLight};
+    use crate::{
+        color::Color,
+        shapes::{Shape, Sphere},
+        spatial::Tuple,
+    };
+    use anyhow::Result;
     use std::f64::consts::SQRT_2;
 
-    use super::{lighting, Material, PointLight};
-    use crate::{color::Color, spatial::Tuple};
-    use anyhow::Result;
+    struct ShapeFactory {}
+
+    impl ShapeFactory {
+        fn test_shape() -> Shape {
+            Shape::Sphere(Sphere::default())
+        }
+    }
 
     #[test]
     fn lighting_with_eye_between_light_and_surface() -> Result<()> {
@@ -108,7 +120,16 @@ mod tests {
         let point_light = PointLight::new(Tuple::point(0, 0, -10), Color::new(1, 1, 1))?;
         let in_shadow = false;
 
-        let result = lighting(&m, &point_light, &position, &eyev, &normal, in_shadow);
+        let object = ShapeFactory::test_shape();
+        let result = lighting(
+            &m,
+            &object,
+            &point_light,
+            &position,
+            &eyev,
+            &normal,
+            in_shadow,
+        )?;
         let expected = Color::new(1.9, 1.9, 1.9);
 
         assert_eq!(result, expected);
@@ -126,7 +147,16 @@ mod tests {
         let point_light = PointLight::new(Tuple::point(0, 0, -10), Color::new(1, 1, 1))?;
         let in_shadow = false;
 
-        let result = lighting(&m, &point_light, &position, &eyev, &normal, in_shadow);
+        let object = ShapeFactory::test_shape();
+        let result = lighting(
+            &m,
+            &object,
+            &point_light,
+            &position,
+            &eyev,
+            &normal,
+            in_shadow,
+        )?;
         let expected = Color::new(1, 1, 1);
 
         assert_eq!(result, expected);
@@ -144,7 +174,16 @@ mod tests {
         let point_light = PointLight::new(Tuple::point(0, 10, -10), Color::new(1, 1, 1))?;
         let in_shadow = false;
 
-        let result = lighting(&m, &point_light, &position, &eyev, &normal, in_shadow);
+        let object = ShapeFactory::test_shape();
+        let result = lighting(
+            &m,
+            &object,
+            &point_light,
+            &position,
+            &eyev,
+            &normal,
+            in_shadow,
+        )?;
         let expected = Color::new(0.7364, 0.7364, 0.7364);
 
         assert_eq!(result, expected);
@@ -162,7 +201,16 @@ mod tests {
         let point_light = PointLight::new(Tuple::point(0, 10, -10), Color::new(1, 1, 1))?;
         let in_shadow = false;
 
-        let result = lighting(&m, &point_light, &position, &eyev, &normal, in_shadow);
+        let object = ShapeFactory::test_shape();
+        let result = lighting(
+            &m,
+            &object,
+            &point_light,
+            &position,
+            &eyev,
+            &normal,
+            in_shadow,
+        )?;
         let expected = Color::new(1.6364, 1.6364, 1.6364);
 
         assert_eq!(result, expected);
@@ -180,7 +228,16 @@ mod tests {
         let point_light = PointLight::new(Tuple::point(0, 0, 10), Color::new(1, 1, 1))?;
         let in_shadow = false;
 
-        let result = lighting(&m, &point_light, &position, &eyev, &normal, in_shadow);
+        let object = ShapeFactory::test_shape();
+        let result = lighting(
+            &m,
+            &object,
+            &point_light,
+            &position,
+            &eyev,
+            &normal,
+            in_shadow,
+        )?;
         let expected = Color::new(0.1, 0.1, 0.1);
 
         assert_eq!(result, expected);
@@ -198,7 +255,16 @@ mod tests {
         let point_light = PointLight::new(Tuple::point(0, 0, -10), Color::new(1, 1, 1))?;
         let in_shadow = true;
 
-        let result = lighting(&m, &point_light, &position, &eyev, &normal, in_shadow);
+        let object = ShapeFactory::test_shape();
+        let result = lighting(
+            &m,
+            &object,
+            &point_light,
+            &position,
+            &eyev,
+            &normal,
+            in_shadow,
+        )?;
         let expected = Color::new(0.1, 0.1, 0.1);
 
         assert_eq!(result, expected);

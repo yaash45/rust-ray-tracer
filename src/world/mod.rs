@@ -91,14 +91,15 @@ impl World {
             return Ok(Color::black());
         }
 
-        Ok(lighting(
+        lighting(
             &comps.get_object().get_material(),
+            comps.get_object(),
             self.light.as_ref().unwrap(),
             comps.get_point(),
             comps.get_eyev(),
             comps.get_normalv(),
             self.is_shadowed(comps.get_over_point())?, // placeholder until shadows are accounted for
-        ))
+        )
     }
 
     /// This method calculates all the intersections of a given ray
