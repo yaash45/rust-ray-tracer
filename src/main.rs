@@ -3,10 +3,11 @@ use raytracer::camera::Camera;
 use raytracer::canvas::Canvas;
 use raytracer::color::Color;
 use raytracer::intersections::{hit, Ray};
-use raytracer::lights::{lighting, Material, PointLight, StripedPattern};
+use raytracer::lights::{lighting, Material, PointLight};
 use raytracer::matrix::{
     rotation_x, rotation_y, rotation_z, scaling, translation, view_transform, Transformable,
 };
+use raytracer::patterns::{PatternType, Solid, Striped};
 use raytracer::shapes::{Intersect, Plane, Shape, Sphere, SurfaceNormal};
 use raytracer::spatial::Tuple;
 use raytracer::tick::{tick, Environment, Projectile};
@@ -131,7 +132,8 @@ fn cast_rays_on_sphere_3d() -> Result<()> {
     let mut canvas = Canvas::new(height, width);
 
     let mut s = Sphere::default();
-    s.material.set_color(Color::new(1, 1, 1));
+    s.material
+        .set_pattern(PatternType::Solid(Solid::from(Color::new(1, 1, 1))));
 
     let light_position = Tuple::point(-10, 10, -10);
     let light_color = Color::new(1, 0, 0);
@@ -177,7 +179,9 @@ fn cast_rays_on_sphere_3d() -> Result<()> {
 #[allow(dead_code)]
 fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     let mut floor_material = Material::default();
-    floor_material.set_color(Color::new(0.17, 0.4, 0.925));
+    floor_material.set_pattern(PatternType::Solid(Solid::from(Color::new(
+        0.17, 0.4, 0.925,
+    ))));
     floor_material.set_specular(0.0);
     let floor = Plane::new(translation(0, 0.4, 0), floor_material);
 
@@ -185,7 +189,7 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     left_wall_transform = (&left_wall_transform * &rotation_x(PI / 2.0))?;
     left_wall_transform = (&left_wall_transform * &scaling(10, 0.01, 10))?;
     let mut left_wall_material = floor_material;
-    left_wall_material.set_color(Color::new(1, 0.9, 0.9));
+    left_wall_material.set_pattern(PatternType::Solid(Solid::from(Color::new(1, 0.9, 0.9))));
     let left_wall = Plane::new(left_wall_transform, left_wall_material);
 
     let mut right_wall_transform = (&translation(0, 0, 5) * &rotation_y(PI / 4.0))?;
@@ -196,11 +200,11 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
 
     let mut middle_material = Material::default();
     // middle_material.set_color(Color::new(0.1, 1, 0.5));
-    middle_material.set_pattern(StripedPattern::new(
+    middle_material.set_pattern(PatternType::Striped(Striped::new(
         Color::white(),
         Color::blue(),
         (&scaling(0.1, 0.1, 0.1) * &rotation_y(PI / 4.0))?,
-    ));
+    )));
     middle_material.set_diffuse(0.7);
     middle_material.set_specular(0.3);
     let middle = Sphere::new(
@@ -209,7 +213,7 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     );
 
     let mut right_material = Material::default();
-    right_material.set_color(Color::new(0.5, 1, 0.1));
+    right_material.set_pattern(PatternType::Solid(Solid::from(Color::new(0.5, 1, 0.1))));
     right_material.set_diffuse(0.7);
     right_material.set_specular(0.3);
     let right = Sphere::new(
@@ -218,7 +222,7 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     );
 
     let mut left_material = Material::default();
-    left_material.set_color(Color::new(1, 0.8, 0.1));
+    left_material.set_pattern(PatternType::Solid(Solid::from(Color::new(1, 0.8, 0.1))));
     left_material.set_diffuse(0.7);
     left_material.set_specular(0.3);
     let left = Sphere::new(

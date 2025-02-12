@@ -311,6 +311,12 @@ impl<const M: usize, const N: usize> Default for Matrix<M, N> {
     }
 }
 
+impl AsRef<Matrix<4, 4>> for Matrix<4, 4> {
+    fn as_ref(&self) -> &Matrix<4, 4> {
+        self
+    }
+}
+
 /// Some matrix operations don't need a reference to `self`. This module is
 /// meant to contain those static functions that do not require instantiation
 /// of [Matrix] instances. Furthermore, when dealing with square matrices of

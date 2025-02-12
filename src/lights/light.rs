@@ -1,7 +1,8 @@
-use crate::{color::Color, intersections::reflect, shapes::Shape, spatial::Tuple};
-use anyhow::{Error, Result};
-
 use super::Material;
+use crate::{
+    color::Color, intersections::reflect, patterns::Pattern, shapes::Shape, spatial::Tuple,
+};
+use anyhow::{Error, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 /// Data structure representing a light source. A light source
@@ -43,15 +44,9 @@ pub fn lighting(
     normalv: &Tuple,
     in_shadow: bool,
 ) -> Result<Color> {
-    let effective_color;
+    let pattern = material.get_pattern();
 
-    if let Some(color) = material.get_color() {
-        effective_color = color * point_light.intensity;
-    } else if let Some(pattern) = material.get_pattern() {
-        effective_color = pattern.stripe_at_object(object, position)? * point_light.intensity;
-    } else {
-        effective_color = Color::white();
-    }
+    let effective_color = pattern.pattern_at_object(object, position)? * point_light.intensity;
 
     // compute ambient contribution
     let ambient = effective_color * material.get_ambient();

@@ -4,7 +4,11 @@ pub use float_equals::{float_equals, EPSILON};
 
 #[cfg(test)]
 pub mod test_utils {
-    use crate::shapes::{Shape, Sphere};
+    use crate::{
+        color::Color,
+        patterns::{Pattern, Solid},
+        shapes::{Shape, Sphere},
+    };
 
     /// A factory for generating test shapes.
     pub struct TestShapeFactory {}
@@ -13,6 +17,14 @@ pub mod test_utils {
     impl TestShapeFactory {
         pub fn test_shape() -> Shape {
             Shape::Sphere(Sphere::default())
+        }
+    }
+
+    pub struct PatternFactory {}
+
+    impl PatternFactory {
+        pub fn test_pattern() -> impl Pattern {
+            Solid::new(Color::white())
         }
     }
 }
