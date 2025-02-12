@@ -94,21 +94,9 @@ pub fn lighting(
 #[cfg(test)]
 mod tests {
     use super::{lighting, Material, PointLight};
-    use crate::{
-        color::Color,
-        shapes::{Shape, Sphere},
-        spatial::Tuple,
-    };
+    use crate::{color::Color, spatial::Tuple, utils::test_utils::TestShapeFactory};
     use anyhow::Result;
     use std::f64::consts::SQRT_2;
-
-    struct ShapeFactory {}
-
-    impl ShapeFactory {
-        fn test_shape() -> Shape {
-            Shape::Sphere(Sphere::default())
-        }
-    }
 
     #[test]
     fn lighting_with_eye_between_light_and_surface() -> Result<()> {
@@ -120,7 +108,7 @@ mod tests {
         let point_light = PointLight::new(Tuple::point(0, 0, -10), Color::new(1, 1, 1))?;
         let in_shadow = false;
 
-        let object = ShapeFactory::test_shape();
+        let object = TestShapeFactory::test_shape();
         let result = lighting(
             &m,
             &object,
@@ -147,7 +135,7 @@ mod tests {
         let point_light = PointLight::new(Tuple::point(0, 0, -10), Color::new(1, 1, 1))?;
         let in_shadow = false;
 
-        let object = ShapeFactory::test_shape();
+        let object = TestShapeFactory::test_shape();
         let result = lighting(
             &m,
             &object,
@@ -174,7 +162,7 @@ mod tests {
         let point_light = PointLight::new(Tuple::point(0, 10, -10), Color::new(1, 1, 1))?;
         let in_shadow = false;
 
-        let object = ShapeFactory::test_shape();
+        let object = TestShapeFactory::test_shape();
         let result = lighting(
             &m,
             &object,
@@ -201,7 +189,7 @@ mod tests {
         let point_light = PointLight::new(Tuple::point(0, 10, -10), Color::new(1, 1, 1))?;
         let in_shadow = false;
 
-        let object = ShapeFactory::test_shape();
+        let object = TestShapeFactory::test_shape();
         let result = lighting(
             &m,
             &object,
@@ -228,7 +216,7 @@ mod tests {
         let point_light = PointLight::new(Tuple::point(0, 0, 10), Color::new(1, 1, 1))?;
         let in_shadow = false;
 
-        let object = ShapeFactory::test_shape();
+        let object = TestShapeFactory::test_shape();
         let result = lighting(
             &m,
             &object,
@@ -255,7 +243,7 @@ mod tests {
         let point_light = PointLight::new(Tuple::point(0, 0, -10), Color::new(1, 1, 1))?;
         let in_shadow = true;
 
-        let object = ShapeFactory::test_shape();
+        let object = TestShapeFactory::test_shape();
         let result = lighting(
             &m,
             &object,

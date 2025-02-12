@@ -80,19 +80,10 @@ mod tests {
     use crate::{
         color::Color,
         matrix::{scaling, translation, Matrix, Transformable},
-        shapes::{Shape, Sphere},
         spatial::Tuple,
+        utils::test_utils::TestShapeFactory,
     };
     use anyhow::Result;
-
-    struct ShapeFactory {}
-
-    impl ShapeFactory {
-        /// Create a default shape to test against
-        fn test_shape() -> Shape {
-            Shape::Sphere(Sphere::default())
-        }
-    }
 
     #[test]
     fn stripe_at_returns_correct_color_value() {
@@ -120,7 +111,7 @@ mod tests {
 
     #[test]
     fn stripes_with_object_transformation() -> Result<()> {
-        let mut object = ShapeFactory::test_shape();
+        let mut object = TestShapeFactory::test_shape();
         object.set_transform(scaling(2, 2, 2));
 
         let pattern = StripedPattern::from((Color::white(), Color::black()));
@@ -135,7 +126,7 @@ mod tests {
 
     #[test]
     fn stripes_with_pattern_transformation() -> Result<()> {
-        let object = ShapeFactory::test_shape();
+        let object = TestShapeFactory::test_shape();
 
         let mut pattern = StripedPattern::from((Color::white(), Color::black()));
         pattern.set_transform(scaling(2, 2, 2));
@@ -150,7 +141,7 @@ mod tests {
 
     #[test]
     fn stripes_with_object_and_pattern_transformation() -> Result<()> {
-        let mut object = ShapeFactory::test_shape();
+        let mut object = TestShapeFactory::test_shape();
         object.set_transform(scaling(2, 2, 2));
 
         let mut pattern = StripedPattern::from((Color::white(), Color::black()));

@@ -122,22 +122,13 @@ impl Intersect for Shape {
 #[cfg(test)]
 mod tests {
 
-    use super::{Shape, Sphere};
     use crate::lights::Material;
     use crate::matrix::{translation, Matrix, Transformable};
-
-    struct ShapeFactory {}
-
-    impl ShapeFactory {
-        /// Create a default shape to test against
-        fn test_shape() -> Shape {
-            Shape::Sphere(Sphere::default())
-        }
-    }
+    use crate::utils::test_utils::TestShapeFactory;
 
     #[test]
     fn shape_transformations() {
-        let mut s = ShapeFactory::test_shape();
+        let mut s = TestShapeFactory::test_shape();
 
         // by default, the transform matrix of any shape must be an identity matrix
         assert_eq!(s.get_transform(), &Matrix::identity());
@@ -150,7 +141,7 @@ mod tests {
 
     #[test]
     fn shape_materials() {
-        let mut s = ShapeFactory::test_shape();
+        let mut s = TestShapeFactory::test_shape();
 
         // by default, the material of any shape must be the default material
         assert_eq!(s.get_material(), Material::default());
