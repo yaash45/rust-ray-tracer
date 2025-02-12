@@ -1,8 +1,11 @@
 use crate::{
     color::Color,
-    matrix::{Matrix, Transformable},
+    matrix::{inverse_4x4, Matrix, Transformable},
+    shapes::Shape,
     spatial::Tuple,
 };
+
+use anyhow::Result;
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 /// A pattern that has two colors and repeats in a striped manner.
@@ -39,6 +42,15 @@ impl StripedPattern {
             self.b
         }
     }
+
+    /// Given a shape and a point in the world, return the color of the pattern
+    /// at the given point in the world. The pattern is transformed to the
+    /// object's coordinate system before the color is determined.
+    pub fn stripe_at_object(&self, object: &Shape, world_point: &Tuple) -> Result<Color> {
+        let object_point = &inverse_4x4(object.get_transform())? * world_point;
+        let pattern_point = &inverse_4x4(&self.transform_matrix)? * &object_point;
+        Ok(self.stripe_at(&pattern_point))
+    }
 }
 
 impl Transformable for StripedPattern {
@@ -51,10 +63,36 @@ impl Transformable for StripedPattern {
     }
 }
 
+impl From<(Color, Color)> for StripedPattern {
+    /// Create a new striped pattern with two colors with the transform
+    /// set to the identity matrix.
+    ///
+    /// The pattern alternates between `a` and `b` as the x component of a point
+    /// changes.
+    fn from(value: (Color, Color)) -> Self {
+        StripedPattern::new(value.0, value.1, Matrix::<4, 4>::identity())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::StripedPattern;
-    use crate::{color::Color, matrix::Matrix, spatial::Tuple};
+    use crate::{
+        color::Color,
+        matrix::{scaling, translation, Matrix, Transformable},
+        shapes::{Shape, Sphere},
+        spatial::Tuple,
+    };
+    use anyhow::Result;
+
+    struct ShapeFactory {}
+
+    impl ShapeFactory {
+        /// Create a default shape to test against
+        fn test_shape() -> Shape {
+            Shape::Sphere(Sphere::default())
+        }
+    }
 
     #[test]
     fn stripe_at_returns_correct_color_value() {
@@ -78,5 +116,51 @@ mod tests {
         assert_eq!(pattern.stripe_at(&Tuple::point(-0.1, 0, 0)), Color::black());
         assert_eq!(pattern.stripe_at(&Tuple::point(-1, 0, 0)), Color::black());
         assert_eq!(pattern.stripe_at(&Tuple::point(-1.1, 0, 0)), Color::white());
+    }
+
+    #[test]
+    fn stripes_with_object_transformation() -> Result<()> {
+        let mut object = ShapeFactory::test_shape();
+        object.set_transform(scaling(2, 2, 2));
+
+        let pattern = StripedPattern::from((Color::white(), Color::black()));
+
+        assert_eq!(
+            pattern.stripe_at_object(&object, &Tuple::point(1.5, 0, 0))?,
+            Color::white()
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn stripes_with_pattern_transformation() -> Result<()> {
+        let object = ShapeFactory::test_shape();
+
+        let mut pattern = StripedPattern::from((Color::white(), Color::black()));
+        pattern.set_transform(scaling(2, 2, 2));
+
+        assert_eq!(
+            pattern.stripe_at_object(&object, &Tuple::point(1.5, 0, 0))?,
+            Color::white()
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn stripes_with_object_and_pattern_transformation() -> Result<()> {
+        let mut object = ShapeFactory::test_shape();
+        object.set_transform(scaling(2, 2, 2));
+
+        let mut pattern = StripedPattern::from((Color::white(), Color::black()));
+        pattern.set_transform(translation(0.5, 0, 0));
+
+        assert_eq!(
+            pattern.stripe_at_object(&object, &Tuple::point(2.5, 0, 0))?,
+            Color::white()
+        );
+
+        Ok(())
     }
 }
