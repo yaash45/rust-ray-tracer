@@ -3,6 +3,7 @@ use crate::{
     intersections::{hit, Computations, Intersection, Ray},
     lights::{lighting, PointLight},
     matrix::scaling,
+    patterns::{PatternType, Solid},
     shapes::{Intersect, Shape, Sphere},
     spatial::Tuple,
 };
@@ -91,14 +92,15 @@ impl World {
             return Ok(Color::black());
         }
 
-        Ok(lighting(
+        lighting(
             &comps.get_object().get_material(),
+            comps.get_object(),
             self.light.as_ref().unwrap(),
             comps.get_point(),
             comps.get_eyev(),
             comps.get_normalv(),
             self.is_shadowed(comps.get_over_point())?, // placeholder until shadows are accounted for
-        ))
+        )
     }
 
     /// This method calculates all the intersections of a given ray
@@ -123,7 +125,8 @@ impl Default for World {
             PointLight::new(Tuple::point(-10, 10, -10), Color::new(1, 1, 1)).unwrap();
 
         let mut s1 = Sphere::default();
-        s1.material.set_color(Color::new(0.8, 1.0, 0.6));
+        s1.material
+            .set_pattern(PatternType::Solid(Solid::new(Color::new(0.8, 1.0, 0.6))));
         s1.material.set_diffuse(0.7);
         s1.material.set_specular(0.2);
 
@@ -145,6 +148,7 @@ mod test {
         intersections::{Computations, Intersection, Ray},
         lights::PointLight,
         matrix::translation,
+        patterns::Pattern,
         shapes::{Shape, Sphere},
         spatial::Tuple,
     };
@@ -251,7 +255,13 @@ mod test {
 
         let r = Ray::new(Tuple::point(0, 0, 0.75), Tuple::vector(0, 0, -1))?;
         let c = w.color_at(&r)?;
-        assert_eq!(c, w.objects[1].get_material().get_color());
+        assert_eq!(
+            c,
+            w.objects[1]
+                .get_material()
+                .get_pattern()
+                .pattern_at(&Tuple::point(0, 0, -1))
+        );
         Ok(())
     }
 

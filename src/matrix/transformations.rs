@@ -1,5 +1,16 @@
 use crate::{matrix::Matrix, spatial::Tuple};
 
+/// Trait used to abstract away the process of getting and setting the transformation matrix
+/// for various objects in the raytracer. It is used to implement the `get_transform` and
+/// `set_transform` methods for Shapes and Patterns.
+pub trait Transformable {
+    /// Gets the transformation matrix for this object
+    fn get_transform(&self) -> &Matrix<4, 4>;
+
+    /// Sets the transformation matrix for this object
+    fn set_transform(&mut self, transform_matrix: Matrix<4, 4>);
+}
+
 /// Gets a 4x4 transformation matrix that can be used to translate tuples in 3D space
 ///
 /// ```

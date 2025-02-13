@@ -32,8 +32,18 @@ pub mod world;
 /// for their common traits (such as surface normals, intersections, etc.)
 pub mod shapes;
 
+/// Contains implementations of pattern types and their behavior.
+/// Patterns can be applied to objects, and they determine how colors
+/// are applied to the surface of these objects.
+pub mod patterns;
+
 /// The `spatial` module contains the representation for key
 /// three-dimensional spatial properties like Points and Vectors
 pub mod spatial;
+
+/// Contains the implementation of the `tick` function, which simulates
+/// one unit of time in the projectile simulation.
 pub mod tick;
+
+/// Utility functions and helpers used throughout the project
 mod utils;
