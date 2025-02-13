@@ -1,3 +1,4 @@
+mod gradient;
 mod solid;
 mod striped;
 
@@ -9,13 +10,14 @@ use crate::{
 };
 use anyhow::Result;
 
-pub use {solid::Solid, striped::Striped};
+pub use {gradient::Gradient, solid::Solid, striped::Striped};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 /// A enum representing all the different types of patterns
 pub enum PatternType {
     Solid(Solid),
     Striped(Striped),
+    Gradient(Gradient),
 }
 
 impl Pattern for PatternType {
@@ -23,6 +25,7 @@ impl Pattern for PatternType {
         match self {
             PatternType::Solid(ref s) => s.pattern_at(point),
             PatternType::Striped(ref s) => s.pattern_at(point),
+            PatternType::Gradient(ref g) => g.pattern_at(point),
         }
     }
 
@@ -30,6 +33,7 @@ impl Pattern for PatternType {
         match self {
             PatternType::Solid(ref s) => s.pattern_at_object(object, world_point),
             PatternType::Striped(ref s) => s.pattern_at_object(object, world_point),
+            PatternType::Gradient(ref gradient) => gradient.pattern_at_object(object, world_point),
         }
     }
 }
@@ -39,6 +43,7 @@ impl Transformable for PatternType {
         match self {
             PatternType::Solid(ref s) => s.get_transform(),
             PatternType::Striped(ref s) => s.get_transform(),
+            PatternType::Gradient(ref g) => g.get_transform(),
         }
     }
 
@@ -46,6 +51,7 @@ impl Transformable for PatternType {
         match self {
             PatternType::Solid(ref mut s) => s.set_transform(transform_matrix),
             PatternType::Striped(ref mut s) => s.set_transform(transform_matrix),
+            PatternType::Gradient(ref mut g) => g.set_transform(transform_matrix),
         }
     }
 }
