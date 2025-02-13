@@ -61,13 +61,7 @@ impl From<(Color, Color)> for Striped {
 #[cfg(test)]
 mod tests {
     use super::{Pattern, Striped};
-    use crate::{
-        color::Color,
-        matrix::{scaling, translation, Matrix, Transformable},
-        spatial::Tuple,
-        utils::test_utils::TestShapeFactory,
-    };
-    use anyhow::Result;
+    use crate::{color::Color, matrix::Matrix, spatial::Tuple};
 
     #[test]
     fn pattern_at_returns_correct_color_value() {
@@ -96,51 +90,5 @@ mod tests {
             pattern.pattern_at(&Tuple::point(-1.1, 0, 0)),
             Color::white()
         );
-    }
-
-    #[test]
-    fn stripes_with_object_transformation() -> Result<()> {
-        let mut object = TestShapeFactory::test_shape();
-        object.set_transform(scaling(2, 2, 2));
-
-        let pattern = Striped::from((Color::white(), Color::black()));
-
-        assert_eq!(
-            pattern.pattern_at_object(&object, &Tuple::point(1.5, 0, 0))?,
-            Color::white()
-        );
-
-        Ok(())
-    }
-
-    #[test]
-    fn stripes_with_pattern_transformation() -> Result<()> {
-        let object = TestShapeFactory::test_shape();
-
-        let mut pattern = Striped::from((Color::white(), Color::black()));
-        pattern.set_transform(scaling(2, 2, 2));
-
-        assert_eq!(
-            pattern.pattern_at_object(&object, &Tuple::point(1.5, 0, 0))?,
-            Color::white()
-        );
-
-        Ok(())
-    }
-
-    #[test]
-    fn stripes_with_object_and_pattern_transformation() -> Result<()> {
-        let mut object = TestShapeFactory::test_shape();
-        object.set_transform(scaling(2, 2, 2));
-
-        let mut pattern = Striped::from((Color::white(), Color::black()));
-        pattern.set_transform(translation(0.5, 0, 0));
-
-        assert_eq!(
-            pattern.pattern_at_object(&object, &Tuple::point(2.5, 0, 0))?,
-            Color::white()
-        );
-
-        Ok(())
     }
 }

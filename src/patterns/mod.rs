@@ -69,9 +69,14 @@ pub trait Pattern: Transformable {
 #[cfg(test)]
 mod tests {
     use crate::{
-        matrix::{translation, Matrix, Transformable},
-        utils::test_utils::PatternFactory,
+        color::Color,
+        matrix::{scaling, translation, Matrix, Transformable},
+        spatial::Tuple,
+        utils::test_utils::{PatternFactory, TestShapeFactory},
     };
+    use anyhow::Result;
+
+    use super::Pattern;
 
     #[test]
     fn test_default_pattern_transformation() {
@@ -84,5 +89,49 @@ mod tests {
         let mut pattern = PatternFactory::test_pattern();
         pattern.set_transform(translation(1, 2, 3));
         assert_eq!(pattern.get_transform(), &translation(1, 2, 3));
+    }
+
+    #[test]
+    fn test_pattern_with_object_transformation() -> Result<()> {
+        let mut object = TestShapeFactory::test_shape();
+        object.set_transform(scaling(2, 2, 2));
+
+        let pattern = PatternFactory::test_pattern();
+        let res = pattern.pattern_at_object(&object, &Tuple::point(2, 3, 4))?;
+
+        assert_eq!(res, Color::new(1, 1.5, 2));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_a_pattern_with_pattern_transformation() -> Result<()> {
+        let object = TestShapeFactory::test_shape();
+
+        let mut pattern = PatternFactory::test_pattern();
+        pattern.set_transform(scaling(2, 2, 2));
+
+        assert_eq!(
+            pattern.pattern_at_object(&object, &Tuple::point(2, 3, 4))?,
+            Color::new(1, 1.5, 2)
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_with_both_object_and_pattern_transform() -> Result<()> {
+        let mut object = TestShapeFactory::test_shape();
+        object.set_transform(scaling(2, 2, 2));
+
+        let mut pattern = PatternFactory::test_pattern();
+        pattern.set_transform(translation(0.5, 1, 1.5));
+
+        assert_eq!(
+            pattern.pattern_at_object(&object, &Tuple::point(2.5, 3, 3.5))?,
+            Color::new(0.75, 0.5, 0.25)
+        );
+
+        Ok(())
     }
 }
