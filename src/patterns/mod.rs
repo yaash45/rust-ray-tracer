@@ -1,5 +1,6 @@
 mod checker;
 mod gradient;
+mod radial_gradient;
 mod ring;
 mod solid;
 mod striped;
@@ -11,7 +12,10 @@ use crate::{
 };
 use anyhow::Result;
 
-pub use {checker::Checker, gradient::Gradient, ring::Ring, solid::Solid, striped::Striped};
+pub use {
+    checker::Checker, gradient::Gradient, radial_gradient::GradientRing, ring::Ring, solid::Solid,
+    striped::Striped,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 /// A enum representing all the different types of patterns
@@ -19,6 +23,7 @@ pub enum PatternType {
     Solid(Solid),
     Striped(Striped),
     Gradient(Gradient),
+    GradientRing(GradientRing),
     Ring(Ring),
     Checker(Checker),
 }
@@ -29,6 +34,7 @@ impl Pattern for PatternType {
             PatternType::Solid(ref s) => s.pattern_at(point),
             PatternType::Striped(ref s) => s.pattern_at(point),
             PatternType::Gradient(ref g) => g.pattern_at(point),
+            PatternType::GradientRing(ref g) => g.pattern_at(point),
             PatternType::Ring(ref r) => r.pattern_at(point),
             PatternType::Checker(ref c) => c.pattern_at(point),
         }
@@ -39,6 +45,7 @@ impl Pattern for PatternType {
             PatternType::Solid(ref s) => s.pattern_at_object(object, world_point),
             PatternType::Striped(ref s) => s.pattern_at_object(object, world_point),
             PatternType::Gradient(ref g) => g.pattern_at_object(object, world_point),
+            PatternType::GradientRing(ref g) => g.pattern_at_object(object, world_point),
             PatternType::Ring(ref r) => r.pattern_at_object(object, world_point),
             PatternType::Checker(ref c) => c.pattern_at_object(object, world_point),
         }
@@ -51,6 +58,7 @@ impl Transformable for PatternType {
             PatternType::Solid(ref s) => s.get_transform(),
             PatternType::Striped(ref s) => s.get_transform(),
             PatternType::Gradient(ref g) => g.get_transform(),
+            PatternType::GradientRing(ref g) => g.get_transform(),
             PatternType::Ring(ref r) => r.get_transform(),
             PatternType::Checker(ref c) => c.get_transform(),
         }
@@ -61,6 +69,7 @@ impl Transformable for PatternType {
             PatternType::Solid(ref mut s) => s.set_transform(transform_matrix),
             PatternType::Striped(ref mut s) => s.set_transform(transform_matrix),
             PatternType::Gradient(ref mut g) => g.set_transform(transform_matrix),
+            PatternType::GradientRing(ref mut g) => g.set_transform(transform_matrix),
             PatternType::Ring(ref mut r) => r.set_transform(transform_matrix),
             PatternType::Checker(ref mut c) => c.set_transform(transform_matrix),
         }
