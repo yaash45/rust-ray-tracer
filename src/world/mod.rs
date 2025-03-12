@@ -3,7 +3,7 @@ use crate::{
     intersections::{hit, Computations, Intersection, Ray},
     lights::{lighting, PointLight},
     matrix::scaling,
-    patterns::{PatternType, Solid},
+    patterns::Solid,
     shapes::{Intersect, Shape, Sphere},
     spatial::Tuple,
 };
@@ -126,7 +126,7 @@ impl Default for World {
 
         let mut s1 = Sphere::default();
         s1.material
-            .set_pattern(PatternType::Solid(Solid::new(Color::new(0.8, 1.0, 0.6))));
+            .set_pattern(Solid::new(Color::new(0.8, 1.0, 0.6)).into());
         s1.material.set_diffuse(0.7);
         s1.material.set_specular(0.2);
 

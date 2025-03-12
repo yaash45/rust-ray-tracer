@@ -76,6 +76,42 @@ impl Transformable for PatternType {
     }
 }
 
+impl From<Solid> for PatternType {
+    fn from(value: Solid) -> Self {
+        PatternType::Solid(value)
+    }
+}
+
+impl From<Striped> for PatternType {
+    fn from(value: Striped) -> Self {
+        PatternType::Striped(value)
+    }
+}
+
+impl From<Gradient> for PatternType {
+    fn from(value: Gradient) -> Self {
+        PatternType::Gradient(value)
+    }
+}
+
+impl From<GradientRing> for PatternType {
+    fn from(value: GradientRing) -> Self {
+        PatternType::GradientRing(value)
+    }
+}
+
+impl From<Ring> for PatternType {
+    fn from(value: Ring) -> Self {
+        PatternType::Ring(value)
+    }
+}
+
+impl From<Checker> for PatternType {
+    fn from(value: Checker) -> Self {
+        PatternType::Checker(value)
+    }
+}
+
 /// Trait for defining patterns with transformations.
 /// Provides methods to get pattern color at a given point.
 pub trait Pattern: Transformable {
