@@ -147,8 +147,10 @@ mod tests {
         assert_eq!(s.get_material(), Material::default());
 
         // the material of any shape can be set
-        let mut new_material = Material::default();
-        new_material.set_ambient(0.5);
+        let new_material = Material {
+            ambient: 0.5,
+            ..Default::default()
+        };
         s.set_material(new_material);
         assert_eq!(s.get_material(), new_material);
     }

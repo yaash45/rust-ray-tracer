@@ -125,10 +125,9 @@ impl Default for World {
             PointLight::new(Tuple::point(-10, 10, -10), Color::new(1, 1, 1)).unwrap();
 
         let mut s1 = Sphere::default();
-        s1.material
-            .set_pattern(Solid::new(Color::new(0.8, 1.0, 0.6)).into());
-        s1.material.set_diffuse(0.7);
-        s1.material.set_specular(0.2);
+        s1.material.pattern = Solid::new(Color::new(0.8, 1.0, 0.6)).into();
+        s1.material.diffuse = 0.7;
+        s1.material.specular = 0.2;
 
         let mut s2 = Sphere::default();
         s2.transform_matrix = scaling(0.5, 0.5, 0.5);
@@ -246,11 +245,11 @@ mod test {
     fn color_at_when_intersection_is_behind_ray() -> Result<()> {
         let mut w = World::default();
         let mut m = w.objects[0].get_material();
-        m.set_ambient(1.0);
+        m.ambient = 1.0;
         w.objects[0].set_material(m);
 
         let mut m = w.objects[1].get_material();
-        m.set_ambient(1.0);
+        m.ambient = 1.0;
         w.objects[1].set_material(m);
 
         let r = Ray::new(Tuple::point(0, 0, 0.75), Tuple::vector(0, 0, -1))?;
@@ -259,7 +258,7 @@ mod test {
             c,
             w.objects[1]
                 .get_material()
-                .get_pattern()
+                .pattern
                 .pattern_at(&Tuple::point(0, 0, -1))
         );
         Ok(())

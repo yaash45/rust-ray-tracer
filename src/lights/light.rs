@@ -44,12 +44,12 @@ pub fn lighting(
     normalv: &Tuple,
     in_shadow: bool,
 ) -> Result<Color> {
-    let pattern = material.get_pattern();
+    let pattern = material.pattern;
 
     let effective_color = pattern.pattern_at_object(object, position)? * point_light.intensity;
 
     // compute ambient contribution
-    let ambient = effective_color * material.get_ambient();
+    let ambient = effective_color * material.ambient;
 
     // if we're in a shadow, we can ignore the diffuse and specular components
     if in_shadow {
@@ -68,7 +68,7 @@ pub fn lighting(
 
     if light_dot_normal >= 0.0 {
         // compute the diffuse contribution
-        diffuse = effective_color * material.get_diffuse() * light_dot_normal;
+        diffuse = effective_color * material.diffuse * light_dot_normal;
 
         // reflect_dot_eye represents the cosine angle between the
         // reflection vector and the eye vector. Negative number
@@ -78,8 +78,8 @@ pub fn lighting(
 
         if reflect_dot_eye >= 0.0 {
             // compute the specular contribution
-            let factor = reflect_dot_eye.powf(material.get_shininess());
-            specular = point_light.intensity * material.get_specular() * factor;
+            let factor = reflect_dot_eye.powf(material.shininess);
+            specular = point_light.intensity * material.specular * factor;
         }
     }
 
