@@ -88,7 +88,7 @@ impl Material {
 impl Default for Material {
     fn default() -> Self {
         Self {
-            pattern: PatternType::Solid(Solid::from(Color::white())),
+            pattern: Solid::from(Color::white()).into(),
             ambient: Positive::new(0.1).unwrap(),
             diffuse: Positive::new(0.9).unwrap(),
             specular: Positive::new(0.9).unwrap(),
@@ -110,19 +110,13 @@ impl PartialEq for Material {
 #[cfg(test)]
 mod test {
     use super::Material;
-    use crate::{
-        color::Color,
-        patterns::{PatternType, Solid},
-    };
+    use crate::{color::Color, patterns::Solid};
 
     #[test]
     fn create_default_material() {
         let m = Material::default();
 
-        assert_eq!(
-            m.get_pattern(),
-            &PatternType::Solid(Solid::from(Color::new(1, 1, 1)))
-        );
+        assert_eq!(m.get_pattern(), &Solid::from(Color::new(1, 1, 1)).into());
         assert_eq!(m.get_ambient(), 0.1);
         assert_eq!(m.get_diffuse(), 0.9);
         assert_eq!(m.get_specular(), 0.9);
