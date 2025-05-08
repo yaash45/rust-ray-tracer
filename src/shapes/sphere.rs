@@ -272,10 +272,10 @@ mod tests {
         };
 
         let i = Intersection::new(5, Shape::Sphere(shape));
-        let comps = Computations::prepare_computations(&i, &r)?;
+        let comps = Computations::prepare(&i, &r)?;
 
-        assert!(comps.get_over_point().get_z() < -EPSILON / 2.0);
-        assert!(comps.get_point().get_z() > comps.get_over_point().get_z());
+        assert!(comps.over_point.get_z() < -EPSILON / 2.0);
+        assert!(comps.point.get_z() > comps.over_point.get_z());
 
         Ok(())
     }
