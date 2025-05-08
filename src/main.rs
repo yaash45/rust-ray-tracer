@@ -180,6 +180,7 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     let floor_material = Material {
         pattern: Solid::from(Color::new(0.17, 0.4, 0.925)).into(),
         specular: 0.0,
+        reflective: 0.85,
         ..Default::default()
     };
 
@@ -188,20 +189,28 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     let mut left_wall_transform = (&translation(0, 0, 5) * &rotation_y(-PI / 4.0))?;
     left_wall_transform = (&left_wall_transform * &rotation_x(PI / 2.0))?;
     left_wall_transform = (&left_wall_transform * &scaling(10, 0.01, 10))?;
-    let mut left_wall_material = floor_material;
-    left_wall_material.pattern = Solid::from(Color::new(1, 0.9, 0.9)).into();
+    let left_wall_material = Material {
+        pattern: Solid::from(Color::new(1, 0.9, 0.9)).into(),
+        reflective: 0.1,
+        ..Default::default()
+    };
     let left_wall = Plane::new(left_wall_transform, left_wall_material);
 
     let mut right_wall_transform = (&translation(0, 0, 5) * &rotation_y(PI / 4.0))?;
     right_wall_transform = (&right_wall_transform * &rotation_x(PI / 2.0))?;
     right_wall_transform = (&right_wall_transform * &scaling(10, 0.01, 10))?;
-    let right_wall_material = left_wall_material;
+    let right_wall_material = Material {
+        pattern: left_wall_material.pattern,
+        reflective: 0.0,
+        ..Default::default()
+    };
     let right_wall = Plane::new(right_wall_transform, right_wall_material);
 
     let middle_material = Material {
+        // pattern: GradientRing::new(Color::white(), Color::blue(), scaling(0.1, 0.1, 0.1)).into(),
         pattern: Striped::new(
-            Color::white(),
-            Color::blue(),
+            Color::new(0.337, 0.337, 0.651),
+            Color::new(0.27, 0.73, 0.5),
             (&scaling(0.1, 0.1, 0.1) * &rotation_y(PI / 4.0))?,
         )
         .into(),
@@ -286,7 +295,7 @@ fn main() -> Result<()> {
     // cast_rays_on_sphere_3d()?;
 
     // render a world from chapter 7, etc.
-    render_a_world(100, 100)?;
+    render_a_world(1080, 1920)?;
 
     Ok(())
 }
