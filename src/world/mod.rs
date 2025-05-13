@@ -155,7 +155,7 @@ impl World {
             return Ok(Color::black());
         }
 
-        let comps = Computations::prepare(h.as_ref().unwrap(), ray)?;
+        let comps = Computations::prepare(h.as_ref().unwrap(), ray, &[])?;
         self.shade_hit_helper(&comps, remaining_iterations)
     }
 
@@ -242,7 +242,7 @@ mod test {
         // Ensure that we have two objects in our world
         assert_eq!(w.object_count(), 2);
         let i = Intersection::new(4, w.objects[0]);
-        let comps = Computations::prepare(&i, &r)?;
+        let comps = Computations::prepare(&i, &r, &[])?;
 
         let c = w.shade_hit(&comps)?;
 
@@ -264,7 +264,7 @@ mod test {
         // Ensure that we have two objects in our world
         assert_eq!(w.object_count(), 2);
         let i = Intersection::new(0.5, w.objects[1]);
-        let comps = Computations::prepare(&i, &r)?;
+        let comps = Computations::prepare(&i, &r, &[])?;
 
         let c = w.shade_hit(&comps)?;
 
@@ -353,7 +353,7 @@ mod test {
         let r = Ray::new(Tuple::point(0, 0, 5), Tuple::vector(0, 0, 1))?;
         let i = Intersection::new(4, Shape::Sphere(s2));
 
-        let comps = Computations::prepare(&i, &r)?;
+        let comps = Computations::prepare(&i, &r, &[])?;
         let c = w.shade_hit(&comps)?;
 
         assert_eq!(c, Color::new(0.1, 0.1, 0.1));
@@ -370,7 +370,7 @@ mod test {
         let i = Intersection::new(1.0, shape);
 
         // Act
-        let comps = Computations::prepare(&i, &r)?;
+        let comps = Computations::prepare(&i, &r, &[])?;
         let color = w.reflected_color(&comps)?;
 
         // Assert
@@ -398,7 +398,7 @@ mod test {
         let i = Intersection::new(SQRT_2, shape);
 
         // Act
-        let comps = Computations::prepare(&i, &r)?;
+        let comps = Computations::prepare(&i, &r, &[])?;
         let color = w.reflected_color(&comps)?;
 
         // Assert
@@ -427,7 +427,7 @@ mod test {
         let i = Intersection::new(SQRT_2, shape);
 
         // Act
-        let comps = Computations::prepare(&i, &r)?;
+        let comps = Computations::prepare(&i, &r, &[])?;
         let color = w.shade_hit(&comps)?;
 
         let expected_color = Color::new(0.87677, 0.92436, 0.82918);

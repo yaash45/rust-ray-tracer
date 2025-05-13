@@ -1,5 +1,5 @@
 use super::{Intersection, Ray};
-use crate::{matrix::Matrix, spatial::Tuple};
+use crate::{matrix::Matrix, shapes::Shape, spatial::Tuple};
 use anyhow::Result;
 use core::f64;
 
@@ -38,6 +38,57 @@ pub fn reflect(inbound: &Tuple, normal: &Tuple) -> Tuple {
     inbound - &(normal * (2.0 * normal.dot(inbound)))
 }
 
+/// Calculates the refractive indices `n1` and `n2` for a given intersection `x`
+/// within a list of intersections `xs`. The method traverses through each intersection,
+/// maintaining a stack of intersected objects to determine the material transitions
+/// at the point of intersection.
+///
+/// - `n1`: The refractive index of the material just outside the intersection.
+/// - `n2`: The refractive index of the material just inside the intersection.
+///
+/// The calculation is based on the order of intersections and whether an object is
+/// being entered or exited, which affects the light's refraction.
+pub fn calculate_n1_n2(xs: &[Intersection], x: &Intersection) -> (f64, f64) {
+    let mut intersected_objects: Vec<Shape> = vec![];
+
+    let mut n1 = 0.0;
+    let mut n2 = 0.0;
+
+    for i in xs {
+        if i == x {
+            if intersected_objects.is_empty() {
+                n1 = 1.0;
+            } else {
+                n1 = intersected_objects
+                    .last()
+                    .unwrap()
+                    .get_material()
+                    .refractive_index;
+            }
+        }
+
+        if intersected_objects.contains(&i.object) {
+            intersected_objects.retain(|o| *o != i.object);
+        } else {
+            intersected_objects.push(i.object);
+        }
+
+        if i == x {
+            if intersected_objects.is_empty() {
+                n2 = 1.0;
+            } else {
+                n2 = intersected_objects
+                    .last()
+                    .unwrap()
+                    .get_material()
+                    .refractive_index;
+            }
+            break;
+        }
+    }
+
+    (n1, n2)
+}
 #[cfg(test)]
 mod tests {
     use std::f64::consts::SQRT_2;
