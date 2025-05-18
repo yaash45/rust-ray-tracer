@@ -63,7 +63,7 @@ impl SurfaceNormal for Sphere {
 
 impl Intersect for Sphere {
     fn local_intersect(&self, ray: &Ray) -> Result<Vec<Intersection>> {
-        let sphere_to_ray = &ray.origin - &Tuple::point(0, 0, 0);
+        let sphere_to_ray = ray.origin - Tuple::point(0, 0, 0);
         let a = ray.direction.dot(&ray.direction);
         let b = 2.0 * ray.direction.dot(&sphere_to_ray);
         let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;

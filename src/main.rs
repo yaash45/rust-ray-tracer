@@ -100,7 +100,7 @@ fn cast_rays_on_sphere_2d() -> Result<()> {
             let world_x = -half + (x as f64 * pixel_size);
 
             let position_on_canvas = Tuple::point(world_x, world_y, wall_z);
-            let direction = (&position_on_canvas - &ray_origin).normalize();
+            let direction = (position_on_canvas - ray_origin).normalize();
 
             let ray = Ray::new(ray_origin, direction)?;
 
@@ -145,7 +145,7 @@ fn cast_rays_on_sphere_3d() -> Result<()> {
             let world_x = -half + (x as f64 * pixel_size);
 
             let position_on_canvas = Tuple::point(world_x, world_y, wall_z);
-            let direction = (&position_on_canvas - &ray_origin).normalize();
+            let direction = (position_on_canvas - ray_origin).normalize();
 
             let ray = Ray::new(ray_origin, direction)?;
 

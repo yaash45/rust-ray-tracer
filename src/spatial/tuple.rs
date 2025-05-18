@@ -176,6 +176,19 @@ impl ops::Add<Tuple> for Tuple {
     }
 }
 
+impl ops::Sub<Tuple> for Tuple {
+    type Output = Tuple;
+
+    fn sub(self, rhs: Tuple) -> Self::Output {
+        Tuple {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
+            w: &self.w - &rhs.w,
+        }
+    }
+}
+
 impl ops::Sub<&Tuple> for &Tuple {
     type Output = Tuple;
 
@@ -358,19 +371,19 @@ mod tests {
 
         // Adding a point and a vector must yield a point
         let expected = Tuple::point(5.0, -5.0, 4.0);
-        let actual = &point_a - &vector_a;
+        let actual = point_a - vector_a;
         assert!(actual.is_a_point());
         assert_eq!(expected, actual);
 
         // Adding two vectors must yield a vector
         let expected = Tuple::vector(-7.0, 6.0, 6.0);
-        let actual = &vector_a - &vector_b;
+        let actual = vector_a - vector_b;
         assert!(actual.is_a_vector());
         assert_eq!(expected, actual);
 
         // Adding two points must yield an "invalid" spatial tuple
         let expected = Tuple::new(-3.0, -1.0, -2.0, Identifier::Invalid);
-        let actual = &vector_a - &point_b;
+        let actual = vector_a - point_b;
         assert!(!actual.is_a_point());
         assert!(!actual.is_a_vector());
         assert_eq!(expected, actual);

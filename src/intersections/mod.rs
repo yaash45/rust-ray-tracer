@@ -41,6 +41,7 @@ pub struct Computations {
     pub reflectv: Tuple,
     pub inside: bool,
     pub over_point: Tuple,
+    pub under_point: Tuple,
     pub n1: f64,
     pub n2: f64,
 }
@@ -66,6 +67,7 @@ impl Computations {
         }
 
         let over_point = point + (&normalv * EPSILON);
+        let under_point = point - (&normalv * EPSILON);
 
         let reflectv = reflect(&r.direction, &normalv);
 
@@ -80,6 +82,7 @@ impl Computations {
             reflectv,
             inside,
             over_point,
+            under_point,
             n1: n_vals.0,
             n2: n_vals.1,
         })
@@ -95,6 +98,7 @@ mod tests {
         matrix::{scaling, translation, Transformable},
         shapes::Plane,
         spatial::Tuple,
+        utils::EPSILON,
     };
 
     use super::{Computations, Intersection, Ray, Shape};
@@ -201,6 +205,24 @@ mod tests {
             assert_eq!(comps.n1, expectations[i].0);
             assert_eq!(comps.n2, expectations[i].1);
         }
+
+        Ok(())
+    }
+
+    #[test]
+    fn under_point_is_offset_below_surface() -> Result<()> {
+        let ray = Ray::new(Tuple::point(0, 0, -5), Tuple::vector(0, 0, 1))?;
+
+        let mut shape = Shape::Sphere(Sphere::glass());
+        shape.set_transform(translation(0, 0, 1));
+
+        let i = Intersection::new(5, shape);
+        let xs = vec![i];
+
+        let comps = Computations::prepare(&i, &ray, &xs)?;
+
+        assert!(comps.under_point.get_z() > (EPSILON / 2.0));
+        assert!(comps.point.get_z() < comps.under_point.get_z());
 
         Ok(())
     }
