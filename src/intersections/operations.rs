@@ -54,8 +54,8 @@ pub fn reflect(inbound: &Tuple, normal: &Tuple) -> Tuple {
 pub fn calculate_n1_n2(xs: &[Intersection], x: &Intersection) -> (f64, f64) {
     let mut intersected_objects: Vec<Shape> = vec![];
 
-    let mut n1 = 0.0;
-    let mut n2 = 0.0;
+    let mut n1 = 1.0;
+    let mut n2 = 1.0;
 
     for i in xs {
         if i == x {
