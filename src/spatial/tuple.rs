@@ -145,8 +145,14 @@ impl Tuple {
 
     /// Returns a vector with the x,y,z values
     /// of the current [Tuple]
-    pub fn convert_to_vector(&self) -> Tuple {
+    pub fn as_vector(&self) -> Tuple {
         Tuple::vector(self.x, self.y, self.z)
+    }
+
+    /// Returns a point with the x,y,z values
+    /// of the current [Tuple]
+    pub fn as_point(&self) -> Tuple {
+        Tuple::point(self.x, self.y, self.z)
     }
 }
 
@@ -483,10 +489,10 @@ mod tests {
         let p = Tuple::point(2, 3, 4);
 
         // case 1: point to vector
-        assert_eq!(p.convert_to_vector(), Tuple::vector(2, 3, 4));
+        assert_eq!(p.as_vector(), Tuple::vector(2, 3, 4));
 
         let v = Tuple::vector(2, 4, 5);
         // case 2: vector to vector
-        assert_eq!(v.convert_to_vector(), Tuple::vector(2, 4, 5));
+        assert_eq!(v.as_vector(), Tuple::vector(2, 4, 5));
     }
 }

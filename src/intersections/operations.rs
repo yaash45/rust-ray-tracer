@@ -29,7 +29,10 @@ pub fn hit(xs: &Vec<Intersection>) -> Option<&Intersection> {
 /// of the ray and the given input matrix. This is useful
 /// to transform rays instead of transforming objects themselves.
 pub fn transform_ray(ray: &Ray, matrix: &Matrix<4, 4>) -> Result<Ray> {
-    Ray::new(matrix * &ray.origin, matrix * &ray.direction)
+    Ray::new(
+        (matrix * &ray.origin).as_point(),
+        (matrix * &ray.direction).as_vector(),
+    )
 }
 
 /// Calculates the reflection of an inbound vector for a
