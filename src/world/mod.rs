@@ -62,7 +62,8 @@ impl World {
         let direction = v.normalize();
 
         let r = Ray::new(*point, direction)?;
-        let h = hit(self.intersect_world(&r)?);
+        let xs = self.intersect_world(&r)?;
+        let h = hit(&xs);
 
         if let Some(h) = h {
             Ok(h.t < distance)
@@ -149,13 +150,13 @@ impl World {
     /// any objects, it returns black.
     fn color_at_helper(&self, ray: &Ray, remaining_iterations: usize) -> Result<Color> {
         let xs = self.intersect_world(ray)?;
-        let h = hit(xs);
+        let h = hit(&xs);
 
         if h.is_none() {
             return Ok(Color::black());
         }
 
-        let comps = Computations::prepare(h.as_ref().unwrap(), ray, &[])?;
+        let comps = Computations::prepare(h.unwrap(), ray, &xs)?;
         self.shade_hit_helper(&comps, remaining_iterations)
     }
 

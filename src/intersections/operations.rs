@@ -9,8 +9,8 @@ use core::f64;
 ///
 /// In the event that the ray misses the object entirely,
 /// this would return a `None` value.
-pub fn hit(xs: Vec<Intersection>) -> Option<Intersection> {
-    let mut result: Option<Intersection> = None;
+pub fn hit(xs: &Vec<Intersection>) -> Option<&Intersection> {
+    let mut result: Option<&Intersection> = None;
     let mut current_min = f64::MAX;
 
     for i in xs {
@@ -108,7 +108,7 @@ mod tests {
         let i1 = Intersection::new(1, Shape::Sphere(s));
         let i2 = Intersection::new(2, Shape::Sphere(s));
 
-        assert_eq!(hit(vec![i2, i1]), Some(i1));
+        assert_eq!(hit(&vec![i2, i1]), Some(&i1));
         Ok(())
     }
 
@@ -118,7 +118,7 @@ mod tests {
         let i1 = Intersection::new(-1, Shape::Sphere(s));
         let i2 = Intersection::new(1, Shape::Sphere(s));
 
-        assert_eq!(hit(vec![i2, i1]), Some(i2));
+        assert_eq!(hit(&vec![i2, i1]), Some(&i2));
 
         Ok(())
     }
@@ -129,7 +129,7 @@ mod tests {
         let i1 = Intersection::new(-2, Shape::Sphere(s));
         let i2 = Intersection::new(-1, Shape::Sphere(s));
 
-        assert_eq!(hit(vec![i2, i1]), None);
+        assert_eq!(hit(&vec![i2, i1]), None);
         Ok(())
     }
 
@@ -141,7 +141,7 @@ mod tests {
         let i3 = Intersection::new(-3, Shape::Sphere(s));
         let i4 = Intersection::new(2, Shape::Sphere(s));
 
-        assert_eq!(hit(vec![i1, i2, i3, i4]), Some(i4));
+        assert_eq!(hit(&vec![i1, i2, i3, i4]), Some(&i4));
 
         Ok(())
     }
