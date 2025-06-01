@@ -1,4 +1,7 @@
-pub const EPSILON: f64 = 2e-5;
+// TODO: Reconstruct the epsilon determination
+// when running tests, due to lower precision
+// float values provided by the textbook
+pub const EPSILON: f64 = 2e-4;
 
 /// Helper function to properly compare the equality
 /// of two 64-bit precision floating point numbers.
