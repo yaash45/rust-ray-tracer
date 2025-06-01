@@ -4,6 +4,7 @@ mod radial_gradient;
 mod ring;
 mod solid;
 mod striped;
+mod test;
 use crate::{
     color::Color,
     matrix::{inverse_4x4, Transformable},
@@ -14,7 +15,7 @@ use anyhow::Result;
 
 pub use {
     checker::Checker, gradient::Gradient, radial_gradient::GradientRing, ring::Ring, solid::Solid,
-    striped::Striped,
+    striped::Striped, test::TestPattern,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -26,6 +27,7 @@ pub enum PatternType {
     GradientRing(GradientRing),
     Ring(Ring),
     Checker(Checker),
+    TestPattern(TestPattern),
 }
 
 impl Pattern for PatternType {
@@ -37,6 +39,7 @@ impl Pattern for PatternType {
             PatternType::GradientRing(ref g) => g.pattern_at(point),
             PatternType::Ring(ref r) => r.pattern_at(point),
             PatternType::Checker(ref c) => c.pattern_at(point),
+            PatternType::TestPattern(ref t) => t.pattern_at(point),
         }
     }
 
@@ -48,6 +51,7 @@ impl Pattern for PatternType {
             PatternType::GradientRing(ref g) => g.pattern_at_object(object, world_point),
             PatternType::Ring(ref r) => r.pattern_at_object(object, world_point),
             PatternType::Checker(ref c) => c.pattern_at_object(object, world_point),
+            PatternType::TestPattern(ref t) => t.pattern_at_object(object, world_point),
         }
     }
 }
@@ -61,6 +65,7 @@ impl Transformable for PatternType {
             PatternType::GradientRing(ref g) => g.get_transform(),
             PatternType::Ring(ref r) => r.get_transform(),
             PatternType::Checker(ref c) => c.get_transform(),
+            PatternType::TestPattern(ref t) => t.get_transform(),
         }
     }
 
@@ -72,6 +77,7 @@ impl Transformable for PatternType {
             PatternType::GradientRing(ref mut g) => g.set_transform(transform_matrix),
             PatternType::Ring(ref mut r) => r.set_transform(transform_matrix),
             PatternType::Checker(ref mut c) => c.set_transform(transform_matrix),
+            PatternType::TestPattern(ref mut t) => t.set_transform(transform_matrix),
         }
     }
 }
@@ -109,6 +115,12 @@ impl From<Ring> for PatternType {
 impl From<Checker> for PatternType {
     fn from(value: Checker) -> Self {
         PatternType::Checker(value)
+    }
+}
+
+impl From<TestPattern> for PatternType {
+    fn from(value: TestPattern) -> Self {
+        PatternType::TestPattern(value)
     }
 }
 

@@ -89,7 +89,7 @@ impl Camera {
         // (remember that the canvas is at z=-1)
         let pixel = &inverse_4x4(&self.transform)? * &Tuple::point(world_x, world_y, -1);
         let origin = &inverse_4x4(&self.transform)? * &Tuple::point(0, 0, 0);
-        let direction = (&pixel - &origin).normalize();
+        let direction = (pixel - origin).normalize();
 
         Ray::new(origin, direction)
     }
