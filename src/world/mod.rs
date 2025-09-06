@@ -114,6 +114,13 @@ impl World {
         let reflected = self.reflected_color_helper(comps, remaining_iterations)?;
         let refracted = self.refracted_color(comps, remaining_iterations)?;
 
+        let material = comps.object.get_material();
+
+        if material.reflective > 0.0 && material.transparency > 0.0 {
+            let reflectance = schlick(comps);
+            return Ok(surface + (reflected * reflectance) + (refracted * (1.0 - reflectance)));
+        }
+
         Ok(surface + reflected + refracted)
     }
 
@@ -202,6 +209,39 @@ impl World {
     }
 }
 
+/// The Schlick approximation gives a more physically accurate
+/// representation of the reflectivity of a material than the constant
+/// reflectivity used in the `Material` struct. The formula for the
+/// Schlick approximation is as follows:
+///
+/// r0 + (1 - r0) * (1 - cos)^5
+///
+/// where r0 is the reflectivity of the material at normal incidence,
+/// and cos is the cosine of the angle between the eye vector and the
+/// normal vector.
+fn schlick(comps: &Computations) -> f64 {
+    // find the cosine of the angle between the eye and normal vectors
+    let mut cos = comps.eyev.dot(&comps.normalv);
+
+    // total internal reflection can only occur if n1 > n2
+    if comps.n1 > comps.n2 {
+        let n = comps.n1 / comps.n2;
+        let sin2_t = (n * n) * (1.0 - (cos * cos));
+
+        if sin2_t > 1.0 {
+            return 1.0;
+        }
+
+        let cos_t = f64::sqrt(1.0 - sin2_t);
+
+        cos = cos_t;
+    }
+
+    let r0 = ((comps.n1 - comps.n2) / (comps.n1 + comps.n2)).powi(2);
+
+    r0 + ((1.0 - r0) * (1.0 - cos).powi(5))
+}
+
 impl Default for World {
     fn default() -> Self {
         let light_source =
@@ -226,15 +266,16 @@ impl Default for World {
 mod test {
     use std::f64::consts::SQRT_2;
 
-    use super::World;
+    use super::{schlick, World};
     use crate::{
         color::Color,
         intersections::{Computations, Intersection, Ray},
         lights::{Material, PointLight},
         matrix::{translation, Transformable},
         patterns::{Pattern, Solid, TestPattern},
-        shapes::{Plane, Shape, Sphere},
+        shapes::{Plane, Shape, ShapeBuildable, Sphere},
         spatial::Tuple,
+        utils::float_equals,
     };
     use anyhow::Result;
 
@@ -624,6 +665,91 @@ mod test {
         let color = w.shade_hit_helper(&comps, 5)?;
 
         assert_eq!(color, Color::new(0.93642, 0.68642, 0.68642));
+
+        Ok(())
+    }
+
+    #[test]
+    fn schlick_approximation_under_total_internal_reflection() -> Result<()> {
+        let sphere = Sphere::glass();
+        let r = Ray::new(Tuple::point(0, 0, SQRT_2 / 2.0), Tuple::vector(0, 1, 0))?;
+        let xs = [
+            Intersection::new(-SQRT_2 / 2.0, Shape::Sphere(sphere)),
+            Intersection::new(SQRT_2 / 2.0, Shape::Sphere(sphere)),
+        ];
+        let comps = Computations::prepare(&xs[1], &r, &xs)?;
+        let reflectance = schlick(&comps);
+
+        assert_eq!(reflectance, 1.0);
+
+        Ok(())
+    }
+
+    #[test]
+    fn schlick_approximation_with_perpendicular_viewing_angle() -> Result<()> {
+        let sphere = Sphere::glass();
+        let r = Ray::new(Tuple::point(0, 0, 0), Tuple::vector(0, 1, 0))?;
+        let xs = [
+            Intersection::new(1, Shape::Sphere(sphere)),
+            Intersection::new(-1, Shape::Sphere(sphere)),
+        ];
+
+        let comps = Computations::prepare(&xs[1], &r, &xs)?;
+        let reflectance = schlick(&comps);
+        assert!(float_equals(&reflectance, &0.04));
+
+        Ok(())
+    }
+
+    #[test]
+    fn schlick_approximation_with_n2_greater_than_n1_and_small_angle() -> Result<()> {
+        let sphere = Sphere::glass();
+        let r = Ray::new(Tuple::point(0, 0.99, -2), Tuple::vector(0, 0, 1))?;
+        let xs = [Intersection::new(1.8589, Shape::Sphere(sphere))];
+
+        let comps = Computations::prepare(&xs[0], &r, &xs)?;
+        let reflectance = schlick(&comps);
+        assert!(float_equals(&reflectance, &0.48873));
+
+        Ok(())
+    }
+
+    #[test]
+    fn shade_hit_with_a_reflective_transparent_material() -> Result<()> {
+        let mut w = World::default();
+        let r = Ray::new(
+            Tuple::point(0, 0, -3),
+            Tuple::vector(0, -SQRT_2 / 2.0, SQRT_2 / 2.0),
+        )?;
+
+        let floor = Plane::default()
+            .with_transform(translation(0, -1, 0))
+            .with_material(Material {
+                reflective: 0.5,
+                transparency: 0.5,
+                refractive_index: 1.5,
+                ..Default::default()
+            });
+
+        w.add_object(floor.into());
+
+        let ball = Sphere::default()
+            .with_transform(translation(0, -3.5, -0.5))
+            .with_material(Material {
+                pattern: Solid::from(Color::red()).into(),
+                ambient: 0.5,
+                ..Default::default()
+            });
+
+        w.add_object(ball.into());
+
+        let xs = [Intersection::new(SQRT_2, floor.into())];
+
+        let comps = Computations::prepare(&xs[0], &r, &xs)?;
+
+        let color = w.shade_hit_helper(&comps, 5)?;
+
+        assert_eq!(color, Color::new(0.93391, 0.69643, 0.69243));
 
         Ok(())
     }
