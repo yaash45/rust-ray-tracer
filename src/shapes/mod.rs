@@ -26,7 +26,7 @@ pub trait SurfaceNormal: Transformable {
         let local_point = &inverse_4x4(self.get_transform())? * point;
         let local_normal = self.local_normal_at(&local_point)?;
         let world_normal = &inverse_4x4(self.get_transform())?.transpose() * &local_normal;
-        Ok(world_normal.convert_to_vector().normalize())
+        Ok(world_normal.as_vector().normalize())
     }
 
     /// Returns the transform matrix of the Shape

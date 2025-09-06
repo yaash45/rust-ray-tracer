@@ -145,8 +145,14 @@ impl Tuple {
 
     /// Returns a vector with the x,y,z values
     /// of the current [Tuple]
-    pub fn convert_to_vector(&self) -> Tuple {
+    pub fn as_vector(&self) -> Tuple {
         Tuple::vector(self.x, self.y, self.z)
+    }
+
+    /// Returns a point with the x,y,z values
+    /// of the current [Tuple]
+    pub fn as_point(&self) -> Tuple {
+        Tuple::point(self.x, self.y, self.z)
     }
 }
 
@@ -172,6 +178,19 @@ impl ops::Add<Tuple> for Tuple {
             y: self.y + rhs.y,
             z: self.z + rhs.z,
             w: &self.w + &rhs.w,
+        }
+    }
+}
+
+impl ops::Sub<Tuple> for Tuple {
+    type Output = Tuple;
+
+    fn sub(self, rhs: Tuple) -> Self::Output {
+        Tuple {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
+            w: &self.w - &rhs.w,
         }
     }
 }
@@ -358,19 +377,19 @@ mod tests {
 
         // Adding a point and a vector must yield a point
         let expected = Tuple::point(5.0, -5.0, 4.0);
-        let actual = &point_a - &vector_a;
+        let actual = point_a - vector_a;
         assert!(actual.is_a_point());
         assert_eq!(expected, actual);
 
         // Adding two vectors must yield a vector
         let expected = Tuple::vector(-7.0, 6.0, 6.0);
-        let actual = &vector_a - &vector_b;
+        let actual = vector_a - vector_b;
         assert!(actual.is_a_vector());
         assert_eq!(expected, actual);
 
         // Adding two points must yield an "invalid" spatial tuple
         let expected = Tuple::new(-3.0, -1.0, -2.0, Identifier::Invalid);
-        let actual = &vector_a - &point_b;
+        let actual = vector_a - point_b;
         assert!(!actual.is_a_point());
         assert!(!actual.is_a_vector());
         assert_eq!(expected, actual);
@@ -470,10 +489,10 @@ mod tests {
         let p = Tuple::point(2, 3, 4);
 
         // case 1: point to vector
-        assert_eq!(p.convert_to_vector(), Tuple::vector(2, 3, 4));
+        assert_eq!(p.as_vector(), Tuple::vector(2, 3, 4));
 
         let v = Tuple::vector(2, 4, 5);
         // case 2: vector to vector
-        assert_eq!(v.convert_to_vector(), Tuple::vector(2, 4, 5));
+        assert_eq!(v.as_vector(), Tuple::vector(2, 4, 5));
     }
 }

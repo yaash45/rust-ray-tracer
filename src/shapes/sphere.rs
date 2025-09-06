@@ -30,6 +30,19 @@ impl Sphere {
             material,
         }
     }
+
+    /// Create a glass [Sphere] (transparency = 1.0, refractive_index = 1.5)
+    pub fn glass() -> Self {
+        Self {
+            _id: Uuid::new_v4(),
+            transform_matrix: Matrix::<4, 4>::identity(),
+            material: Material {
+                transparency: 1.0,
+                refractive_index: 1.5,
+                ..Default::default()
+            },
+        }
+    }
 }
 
 impl Transformable for Sphere {
@@ -50,7 +63,7 @@ impl SurfaceNormal for Sphere {
 
 impl Intersect for Sphere {
     fn local_intersect(&self, ray: &Ray) -> Result<Vec<Intersection>> {
-        let sphere_to_ray = &ray.origin - &Tuple::point(0, 0, 0);
+        let sphere_to_ray = ray.origin - Tuple::point(0, 0, 0);
         let a = ray.direction.dot(&ray.direction);
         let b = 2.0 * ray.direction.dot(&sphere_to_ray);
         let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
@@ -272,11 +285,19 @@ mod tests {
         };
 
         let i = Intersection::new(5, Shape::Sphere(shape));
-        let comps = Computations::prepare(&i, &r)?;
+        let comps = Computations::prepare(&i, &r, &[])?;
 
         assert!(comps.over_point.get_z() < -EPSILON / 2.0);
         assert!(comps.point.get_z() > comps.over_point.get_z());
 
         Ok(())
+    }
+
+    #[test]
+    fn build_a_default_glass_sphere() {
+        let gs = Sphere::glass();
+        assert_eq!(gs.transform_matrix, Matrix::<4, 4>::identity());
+        assert_eq!(gs.material.transparency, 1.0);
+        assert_eq!(gs.material.refractive_index, 1.5);
     }
 }

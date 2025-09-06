@@ -15,27 +15,8 @@ pub struct Material {
     pub specular: f64,
     pub shininess: f64,
     pub reflective: f64,
-}
-
-impl Material {
-    /// Create a new instance of the default material
-    pub fn new(
-        pattern: PatternType,
-        ambient: f64,
-        diffuse: f64,
-        specular: f64,
-        shininess: f64,
-        reflective: f64,
-    ) -> Self {
-        Self {
-            pattern,
-            ambient,
-            diffuse,
-            specular,
-            shininess,
-            reflective,
-        }
-    }
+    pub transparency: f64,
+    pub refractive_index: f64,
 }
 
 impl Default for Material {
@@ -47,6 +28,8 @@ impl Default for Material {
             specular: 0.9,
             shininess: 200.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive_index: 1.0,
         }
     }
 }
@@ -77,5 +60,7 @@ mod test {
         assert_eq!(m.specular, 0.9);
         assert_eq!(m.shininess, 200.0);
         assert_eq!(m.reflective, 0.0);
+        assert_eq!(m.transparency, 0.0);
+        assert_eq!(m.refractive_index, 1.0);
     }
 }

@@ -100,11 +100,11 @@ fn cast_rays_on_sphere_2d() -> Result<()> {
             let world_x = -half + (x as f64 * pixel_size);
 
             let position_on_canvas = Tuple::point(world_x, world_y, wall_z);
-            let direction = (&position_on_canvas - &ray_origin).normalize();
+            let direction = (position_on_canvas - ray_origin).normalize();
 
             let ray = Ray::new(ray_origin, direction)?;
 
-            if hit(s.intersect(&ray)?).is_some() {
+            if hit(&s.intersect(&ray)?).is_some() {
                 canvas.write_pixel(x, y, Color::red())?;
             }
         }
@@ -145,11 +145,11 @@ fn cast_rays_on_sphere_3d() -> Result<()> {
             let world_x = -half + (x as f64 * pixel_size);
 
             let position_on_canvas = Tuple::point(world_x, world_y, wall_z);
-            let direction = (&position_on_canvas - &ray_origin).normalize();
+            let direction = (position_on_canvas - ray_origin).normalize();
 
             let ray = Ray::new(ray_origin, direction)?;
-
-            let cur_hit = hit(s.intersect(&ray)?);
+            let xs = s.intersect(&ray)?;
+            let cur_hit = hit(&xs);
 
             if cur_hit.is_some() {
                 let point = ray.position(cur_hit.unwrap().t);
