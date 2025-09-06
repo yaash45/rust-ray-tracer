@@ -105,7 +105,7 @@ impl World {
             &comps.object.get_material(),
             &comps.object,
             self.light.as_ref().unwrap(),
-            &comps.point,
+            &comps.over_point,
             &comps.eyev,
             &comps.normalv,
             self.is_shadowed(&comps.over_point)?,
