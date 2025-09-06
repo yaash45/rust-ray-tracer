@@ -4,6 +4,7 @@ use {
         intersections::{Intersection, Ray},
         lights::Material,
         matrix::{Matrix, Transformable},
+        shapes::ShapeBuildable,
         spatial::Tuple,
     },
     anyhow::Result,
@@ -58,6 +59,26 @@ impl Transformable for Sphere {
 impl SurfaceNormal for Sphere {
     fn local_normal_at(&self, point: &Tuple) -> Result<Tuple> {
         Ok(point - &Tuple::point(0, 0, 0))
+    }
+}
+
+impl ShapeBuildable for Sphere {
+    type Built = Sphere;
+
+    fn with_material(self, material: Material) -> Self::Built {
+        Self {
+            _id: self._id,
+            transform_matrix: self.transform_matrix,
+            material,
+        }
+    }
+
+    fn with_transform(self, transform: Matrix<4, 4>) -> Self::Built {
+        Self {
+            _id: self._id,
+            transform_matrix: transform,
+            material: self.material,
+        }
     }
 }
 

@@ -2,6 +2,7 @@ use crate::{
     intersections::{Intersection, Ray},
     lights::Material,
     matrix::{Matrix, Transformable},
+    shapes::ShapeBuildable,
     spatial::Tuple,
     utils::EPSILON,
 };
@@ -44,6 +45,26 @@ impl Transformable for Plane {
 impl SurfaceNormal for Plane {
     fn local_normal_at(&self, _point: &Tuple) -> Result<Tuple> {
         Ok(Tuple::vector(0, 1, 0))
+    }
+}
+
+impl ShapeBuildable for Plane {
+    type Built = Plane;
+
+    fn with_material(self, material: Material) -> Self::Built {
+        Self {
+            _id: self._id,
+            transform_matrix: self.transform_matrix,
+            material,
+        }
+    }
+
+    fn with_transform(self, transform: Matrix<4, 4>) -> Self::Built {
+        Self {
+            _id: self._id,
+            transform_matrix: transform,
+            material: self.material,
+        }
     }
 }
 
