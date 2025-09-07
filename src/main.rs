@@ -7,8 +7,8 @@ use raytracer::lights::{lighting, Material, PointLight};
 use raytracer::matrix::{
     rotation_x, rotation_y, rotation_z, scaling, translation, view_transform, Transformable,
 };
-use raytracer::patterns::{Solid, Striped};
-use raytracer::shapes::{Intersect, Plane, Shape, Sphere, SurfaceNormal};
+use raytracer::patterns::{Checker, Solid, Striped};
+use raytracer::shapes::{Intersect, Plane, Shape, ShapeBuildable, Sphere, SurfaceNormal};
 use raytracer::spatial::Tuple;
 use raytracer::tick::{tick, Environment, Projectile};
 use raytracer::world::World;
@@ -273,6 +273,61 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
+fn render_schlick_world(vsize: usize, hsize: usize) -> Result<()> {
+    let mut world = World::empty();
+    let light_source = PointLight::new(Tuple::point(-10, 10, -10), Color::white())?;
+    world.set_light(Some(light_source));
+
+    let floor = Plane::default()
+        .with_transform((&translation(0, -1, 0) * &scaling(0.5, 0.5, 0.5))?)
+        .with_material(Material {
+            pattern: Checker::from((Color::white(), Color::black())).into(),
+            reflective: 0.0,
+            transparency: 0.0,
+            refractive_index: 1.5,
+            ..Default::default()
+        });
+
+    world.add_object(floor.into());
+
+    let mut ball = Sphere::glass().with_transform(translation(0, 1.5, 0));
+    let glass_material = Sphere::glass().material;
+
+    ball.material = Material {
+        diffuse: 0.005,
+        ambient: 0.005,
+        ..glass_material
+    };
+
+    world.add_object(ball.into());
+
+    let inner_ball = Sphere::default()
+        .with_transform((&translation(0, 1.5, 0) * &scaling(0.5, 0.5, 0.5))?)
+        .with_material(Material {
+            pattern: Solid::from(Color::black()).into(),
+            reflective: 0.9,
+            transparency: 1.0,
+            refractive_index: 1.0,
+            ..Default::default()
+        });
+
+    world.add_object(inner_ball.into());
+
+    let mut camera = Camera::new(hsize, vsize, PI / 3.0);
+    camera.set_transform(view_transform(
+        &Tuple::point(0, 5, 0),
+        &Tuple::point(0, 0, 0),
+        &Tuple::point(0, 0, -1),
+    ));
+
+    let canvas = camera.render(&world)?;
+
+    write_canvas_to_file("./chapter11render.ppm", &canvas);
+
+    Ok(())
+}
+
 fn write_canvas_to_file(filename: &str, canvas: &Canvas) {
     std::fs::write(
         filename,
@@ -295,7 +350,10 @@ fn main() -> Result<()> {
     // cast_rays_on_sphere_3d()?;
 
     // render a world from chapter 7, etc.
-    render_a_world(1080, 1920)?;
+    // render_a_world(1080, 1920)?;
+
+    // render a schlick world from chapter 11
+    render_schlick_world(1440, 2560)?;
 
     Ok(())
 }
