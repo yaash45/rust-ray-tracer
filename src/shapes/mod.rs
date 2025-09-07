@@ -60,6 +60,12 @@ pub trait Intersect: Transformable {
     fn local_intersect(&self, transformed_ray: &Ray) -> Result<Vec<Intersection>>;
 }
 
+pub trait ShapeBuildable: Transformable {
+    type Built;
+    fn with_material(self, material: Material) -> Self::Built;
+    fn with_transform(self, transform: Matrix<4, 4>) -> Self::Built;
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 /// Stores all the variants of the Shape type
 pub enum Shape {
@@ -116,6 +122,18 @@ impl Intersect for Shape {
             Shape::Sphere(ref sphere) => sphere.local_intersect(transformed_ray),
             Shape::Plane(ref plane) => plane.local_intersect(transformed_ray),
         }
+    }
+}
+
+impl From<Plane> for Shape {
+    fn from(value: Plane) -> Self {
+        Self::Plane(value)
+    }
+}
+
+impl From<Sphere> for Shape {
+    fn from(value: Sphere) -> Self {
+        Self::Sphere(value)
     }
 }
 
