@@ -14,6 +14,16 @@ pub struct Cube {
     pub material: Material,
 }
 
+impl Cube {
+    pub fn new(transform_matrix: Matrix<4, 4>, material: Material) -> Self {
+        Self {
+            _id: Uuid::new_v4(),
+            transform_matrix,
+            material,
+        }
+    }
+}
+
 impl Transformable for Cube {
     fn get_transform(&self) -> &Matrix<4, 4> {
         &self.transform_matrix

@@ -151,8 +151,8 @@ fn cast_rays_on_sphere_3d() -> Result<()> {
             let xs = s.intersect(&ray)?;
             let cur_hit = hit(&xs);
 
-            if cur_hit.is_some() {
-                let point = ray.position(cur_hit.unwrap().t);
+            if let Some(hit) = cur_hit {
+                let point = ray.position(hit.t);
                 let normal = s.normal_at(&point)?;
                 let eye = -ray.direction;
                 let color = lighting(
