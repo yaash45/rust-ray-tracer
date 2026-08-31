@@ -1,6 +1,8 @@
+mod cube;
 mod plane;
 mod sphere;
 
+pub use cube::Cube;
 pub use plane::Plane;
 pub use sphere::Sphere;
 
@@ -28,9 +30,6 @@ pub trait SurfaceNormal: Transformable {
         let world_normal = &inverse_4x4(self.get_transform())?.transpose() * &local_normal;
         Ok(world_normal.as_vector().normalize())
     }
-
-    /// Returns the transform matrix of the Shape
-    // fn get_transform(&self) -> &Matrix<4, 4>;
 
     /// Returns a surface normal for the shape after it has been transformed
     /// appropriately into object space
@@ -71,6 +70,7 @@ pub trait ShapeBuildable: Transformable {
 pub enum Shape {
     Sphere(Sphere),
     Plane(Plane),
+    Cube(Cube),
 }
 
 impl Shape {
@@ -79,6 +79,7 @@ impl Shape {
         match self {
             Shape::Sphere(ref sphere) => sphere.material,
             Shape::Plane(ref plane) => plane.material,
+            Shape::Cube(ref cube) => cube.material,
         }
     }
 
@@ -87,6 +88,7 @@ impl Shape {
         match self {
             Shape::Sphere(ref mut sphere) => sphere.material = material,
             Shape::Plane(ref mut plane) => plane.material = material,
+            Shape::Cube(ref mut cube) => cube.material = material,
         }
     }
 }
@@ -96,6 +98,7 @@ impl Transformable for Shape {
         match self {
             Shape::Sphere(ref sphere) => &sphere.transform_matrix,
             Shape::Plane(ref plane) => &plane.transform_matrix,
+            Shape::Cube(ref cube) => &cube.transform_matrix,
         }
     }
 
@@ -103,6 +106,7 @@ impl Transformable for Shape {
         match self {
             Shape::Sphere(ref mut sphere) => sphere.transform_matrix = matrix,
             Shape::Plane(ref mut plane) => plane.transform_matrix = matrix,
+            Shape::Cube(ref mut cube) => cube.transform_matrix = matrix,
         }
     }
 }
@@ -112,6 +116,7 @@ impl SurfaceNormal for Shape {
         match self {
             Shape::Sphere(ref sphere) => sphere.local_normal_at(point),
             Shape::Plane(ref plane) => plane.local_normal_at(point),
+            Shape::Cube(ref cube) => cube.local_normal_at(point),
         }
     }
 }
@@ -121,6 +126,7 @@ impl Intersect for Shape {
         match self {
             Shape::Sphere(ref sphere) => sphere.local_intersect(transformed_ray),
             Shape::Plane(ref plane) => plane.local_intersect(transformed_ray),
+            Shape::Cube(ref cube) => cube.local_intersect(transformed_ray),
         }
     }
 }
@@ -134,6 +140,12 @@ impl From<Plane> for Shape {
 impl From<Sphere> for Shape {
     fn from(value: Sphere) -> Self {
         Self::Sphere(value)
+    }
+}
+
+impl From<Cube> for Shape {
+    fn from(value: Cube) -> Self {
+        Self::Cube(value)
     }
 }
 
