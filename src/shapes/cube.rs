@@ -4,6 +4,7 @@ use crate::matrix::{Matrix, Transformable};
 use crate::shapes::{Intersect, Shape, ShapeBuildable, SurfaceNormal};
 use crate::spatial::Tuple;
 use crate::utils::EPSILON;
+use anyhow::Result;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialOrd)]
@@ -24,8 +25,24 @@ impl Transformable for Cube {
 }
 
 impl SurfaceNormal for Cube {
-    fn local_normal_at(&self, point: &Tuple) -> anyhow::Result<Tuple> {
-        todo!()
+    fn local_normal_at(&self, point: &Tuple) -> Result<Tuple> {
+        let (abs_x, abs_y, abs_z) = (
+            point.get_x().abs(),
+            point.get_y().abs(),
+            point.get_z().abs(),
+        );
+
+        let max_c = abs_x.max(abs_y).max(abs_z);
+
+        let normal = if max_c == abs_x {
+            Tuple::vector(point.get_x(), 0.0, 0.0)
+        } else if max_c == abs_y {
+            Tuple::vector(0.0, point.get_y(), 0.0)
+        } else {
+            Tuple::vector(0.0, 0.0, point.get_z())
+        };
+
+        Ok(normal)
     }
 }
 
@@ -119,7 +136,7 @@ impl PartialEq for Cube {
 mod tests {
     use crate::intersections::Ray;
     use crate::shapes::cube::Cube;
-    use crate::shapes::Intersect;
+    use crate::shapes::{Intersect, SurfaceNormal};
     use crate::spatial::Tuple;
     use anyhow::Result;
 
@@ -175,6 +192,30 @@ mod tests {
             let intersections = cube.local_intersect(&ray)?;
 
             assert_eq!(intersections.len(), 0);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn surface_normal_for_cube() -> Result<()> {
+        let cube = Cube::default();
+
+        let cases = [
+            ((1.0, 0.5, -0.8), (1, 0, 0)),
+            ((-1.0, -0.2, 0.9), (-1, 0, 0)),
+            ((-0.4, 1.0, -0.1), (0, 1, 0)),
+            ((0.3, -1.0, -0.7), (0, -1, 0)),
+            ((-0.6, 0.3, 1.0), (0, 0, 1)),
+            ((0.4, 0.4, -1.0), (0, 0, -1)),
+            ((1.0, 1.0, 1.0), (1, 0, 0)),
+            ((-1.0, -1.0, -1.0), (-1, 0, 0)),
+        ];
+
+        for (point, expected) in cases {
+            let p = Tuple::point(point.0, point.1, point.2);
+            let normal = cube.local_normal_at(&p)?;
+            assert_eq!(normal, Tuple::vector(expected.0, expected.1, expected.2));
         }
 
         Ok(())
