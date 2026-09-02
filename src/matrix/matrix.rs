@@ -341,7 +341,7 @@ pub mod static_operations {
     pub(super) fn cofactor_3x3(matrix: &Matrix<3, 3>, row: usize, col: usize) -> Result<f64> {
         let minor = minor_3x3(matrix, row, col)?;
 
-        if (row + col) % 2 == 0 {
+        if (row + col).is_multiple_of(2) {
             Ok(minor)
         } else {
             Ok(-minor)
@@ -369,7 +369,7 @@ pub mod static_operations {
     pub(super) fn cofactor_4x4(matrix: &Matrix<4, 4>, row: usize, col: usize) -> Result<f64> {
         let minor = minor_4x4(matrix, row, col)?;
 
-        if (row + col) % 2 == 0 {
+        if (row + col).is_multiple_of(2) {
             Ok(minor)
         } else {
             Ok(-minor)

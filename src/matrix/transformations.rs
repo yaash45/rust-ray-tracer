@@ -102,6 +102,92 @@ pub fn shearing(
     ])
 }
 
+/// Builds a sequence of transformations to apply to a matrix.
+#[derive(Debug)]
+pub struct TransformComposer {
+    start_matrix: Matrix<4, 4>,
+    transforms: Vec<Matrix<4, 4>>,
+}
+
+impl TransformComposer {
+    /// Creates a builder starting with the identity matrix.
+    pub fn from_identity() -> Self {
+        Self {
+            start_matrix: Matrix::<4, 4>::identity(),
+            transforms: vec![],
+        }
+    }
+
+    /// Creates a builder starting with the given matrix.
+    pub fn from_custom(start_matrix: Matrix<4, 4>) -> Self {
+        Self {
+            start_matrix,
+            transforms: vec![],
+        }
+    }
+
+    /// Adds a translation transformation.
+    pub fn translate(mut self, x: impl Into<f64>, y: impl Into<f64>, z: impl Into<f64>) -> Self {
+        self.transforms.push(translation(x, y, z));
+        self
+    }
+
+    /// Adds a scaling transformation.
+    pub fn scale(mut self, x: impl Into<f64>, y: impl Into<f64>, z: impl Into<f64>) -> Self {
+        self.transforms.push(scaling(x, y, z));
+        self
+    }
+
+    /// Adds a rotation around the x-axis.
+    pub fn rotate_x(mut self, radians: f64) -> Self {
+        self.transforms.push(rotation_x(radians));
+        self
+    }
+
+    /// Adds a rotation around the y-axis.
+    pub fn rotate_y(mut self, radians: f64) -> Self {
+        self.transforms.push(rotation_y(radians));
+        self
+    }
+
+    /// Adds a rotation around the z-axis.
+    pub fn rotate_z(mut self, radians: f64) -> Self {
+        self.transforms.push(rotation_z(radians));
+        self
+    }
+
+    /// Adds a shearing transformation.
+    pub fn shear(
+        mut self,
+        x_y: impl Into<f64>,
+        x_z: impl Into<f64>,
+        y_x: impl Into<f64>,
+        y_z: impl Into<f64>,
+        z_x: impl Into<f64>,
+        z_y: impl Into<f64>,
+    ) -> Self {
+        self.transforms.push(shearing(x_y, x_z, y_x, y_z, z_x, z_y));
+        self
+    }
+
+    /// Adds a custom transformation matrix.
+    pub fn with_custom_matrix(mut self, mat: Matrix<4, 4>) -> Self {
+        self.transforms.push(mat);
+        self
+    }
+
+    /// Applies all transformations in the order they were added.
+    pub fn apply(self) -> Matrix<4, 4> {
+        let mut res = self.start_matrix;
+
+        for m in self.transforms {
+            res = (&res * &m).expect("Transform matrices must always be 4x4");
+        }
+
+        res
+    }
+}
+
 /// Gets a view transform to for the eye vector based on the provided
 /// from, to, and up Tuples for the world
 pub fn view_transform(from: &Tuple, to: &Tuple, up: &Tuple) -> Matrix<4, 4> {
@@ -117,22 +203,16 @@ pub fn view_transform(from: &Tuple, to: &Tuple, up: &Tuple) -> Matrix<4, 4> {
         [0.0, 0.0, 0.0, 1.0],
     ]);
 
-    let translation_transform = translation(-from.get_x(), -from.get_y(), -from.get_z());
-
-    let view_transform_result = &orientation * &translation_transform;
-
-    // Just returning a identity matrix if multiplication went wrong (it _probably_ won't)
-    match view_transform_result {
-        Ok(vt) => vt,
-        Err(_) => Matrix::<4, 4>::identity(),
-    }
+    TransformComposer::from_custom(orientation)
+        .translate(-from.get_x(), -from.get_y(), -from.get_z())
+        .apply()
 }
 
 #[cfg(test)]
 mod tests {
     use std::f64::consts::PI;
 
-    use super::{rotation_x, rotation_y, rotation_z, scaling, shearing, translation};
+    use super::*;
     use crate::matrix::transformations::view_transform;
     use crate::matrix::{inverse_4x4, Matrix};
     use crate::spatial::Tuple;
@@ -294,8 +374,14 @@ mod tests {
         let result_translate = &c * &result_scale;
         assert_eq!(result_translate, Tuple::point(15, 0, 7));
 
+        let chained_transform = TransformComposer::from_identity()
+            .translate(10, 5, 7)
+            .rotate_x(PI / 2.0)
+            .scale(5, 5, 5)
+            .apply();
+
         // Case 2: with chaining
-        let chained_transform = a.multiply(&b)?.multiply(&c)?;
+        // let chained_transform = a.multiply(&b)?.multiply(&c)?;
         assert_eq!(&chained_transform * &p, result_translate);
 
         Ok(())

@@ -5,7 +5,7 @@ use raytracer::color::Color;
 use raytracer::intersections::{hit, Ray};
 use raytracer::lights::{lighting, Material, PointLight};
 use raytracer::matrix::{
-    rotation_x, rotation_y, rotation_z, scaling, translation, view_transform, Transformable,
+    rotation_y, rotation_z, scaling, translation, view_transform, TransformComposer, Transformable,
 };
 use raytracer::patterns::{Checker, Solid, Striped};
 use raytracer::shapes::{Intersect, Plane, Shape, ShapeBuildable, Sphere, SurfaceNormal};
@@ -186,9 +186,13 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
 
     let floor = Plane::new(translation(0, 0.4, 0), floor_material);
 
-    let mut left_wall_transform = (&translation(0, 0, 5) * &rotation_y(-PI / 4.0))?;
-    left_wall_transform = (&left_wall_transform * &rotation_x(PI / 2.0))?;
-    left_wall_transform = (&left_wall_transform * &scaling(10, 0.01, 10))?;
+    let left_wall_transform = TransformComposer::from_identity()
+        .translate(0, 0, 5)
+        .rotate_y(-PI / 4.0)
+        .rotate_x(PI / 2.0)
+        .scale(10, 0.01, 10)
+        .apply();
+
     let left_wall_material = Material {
         pattern: Solid::from(Color::new(1, 0.9, 0.9)).into(),
         reflective: 0.1,
@@ -196,14 +200,19 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     };
     let left_wall = Plane::new(left_wall_transform, left_wall_material);
 
-    let mut right_wall_transform = (&translation(0, 0, 5) * &rotation_y(PI / 4.0))?;
-    right_wall_transform = (&right_wall_transform * &rotation_x(PI / 2.0))?;
-    right_wall_transform = (&right_wall_transform * &scaling(10, 0.01, 10))?;
     let right_wall_material = Material {
         pattern: left_wall_material.pattern,
         reflective: 0.0,
         ..Default::default()
     };
+
+    let right_wall_transform = TransformComposer::from_identity()
+        .translate(0, 0, 5)
+        .rotate_y(PI / 4.0)
+        .rotate_x(PI / 2.0)
+        .scale(10, 0.1, 10)
+        .apply();
+
     let right_wall = Plane::new(right_wall_transform, right_wall_material);
 
     let middle_material = Material {
@@ -232,7 +241,10 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     };
 
     let right = Sphere::new(
-        (&translation(1.5, 0.5, -0.5) * &scaling(0.5, 0.5, 0.5))?,
+        TransformComposer::from_identity()
+            .translate(1.5, 0.5, -0.5)
+            .scale(0.5, 0.5, 0.5)
+            .apply(),
         right_material,
     );
 
@@ -244,7 +256,10 @@ fn render_a_world(vsize: usize, hsize: usize) -> Result<()> {
     };
 
     let left = Sphere::new(
-        (&translation(-1.5, 0.33, -0.75) * &scaling(0.33, 0.33, 0.33))?,
+        TransformComposer::from_identity()
+            .translate(-1.5, 0.33, -0.75)
+            .scale(0.33, 0.33, 0.33)
+            .apply(),
         left_material,
     );
 
@@ -280,7 +295,12 @@ fn render_schlick_world(vsize: usize, hsize: usize) -> Result<()> {
     world.set_light(Some(light_source));
 
     let floor = Plane::default()
-        .with_transform((&translation(0, -1, 0) * &scaling(0.5, 0.5, 0.5))?)
+        .with_transform(
+            TransformComposer::from_identity()
+                .translate(0, -1, 0)
+                .scale(0.5, 0.5, 0.5)
+                .apply(),
+        )
         .with_material(Material {
             pattern: Checker::from((Color::white(), Color::black())).into(),
             reflective: 0.0,
@@ -303,7 +323,12 @@ fn render_schlick_world(vsize: usize, hsize: usize) -> Result<()> {
     world.add_object(ball.into());
 
     let inner_ball = Sphere::default()
-        .with_transform((&translation(0, 1.5, 0) * &scaling(0.5, 0.5, 0.5))?)
+        .with_transform(
+            TransformComposer::from_identity()
+                .translate(0, 1.5, 0)
+                .scale(0.5, 0.5, 0.5)
+                .apply(),
+        )
         .with_material(Material {
             pattern: Solid::from(Color::black()).into(),
             reflective: 0.9,
